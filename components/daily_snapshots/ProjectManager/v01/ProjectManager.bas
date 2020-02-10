@@ -7,15 +7,15 @@ Option Explicit
 Private includedComponents() As String
 
 Sub ExportButton()
-  Call ExportModules
+  Call ExportComponents
 End Sub
 
-Sub DeleteButton()
-  Call DeleteModules
+Sub RemoveButton()
+  Call RemoveComponents
 End Sub
 
 Sub ImportButton()
-  Call ImportModules
+  Call ImportComponents
 End Sub
 
 Sub Init()
@@ -25,19 +25,20 @@ Sub Init()
   Dim includedComponentsString As String
   
   thisWbFolder = ThisWorkbook.Path & "\"
-  includedComponentsString = "" & _
-    "modules\ProjectManager\v01\ProjectManager.bas" & "," & _
-    "modules\DailySnapshots\v01\Main.bas" & "," & _
-    "modules\common\CommonMethods\v01\CommonMethods.cls" & "," & _
-    "modules\common\Errors\v01\Errors.cls" & "," & _
-    "modules\common\RWFile\v01\RWFile.cls" & "," & _
-    "modules\common\RWini\v01\RWini.cls" & "," & _
-    "modules\common\DataSet\v01\DataSet.cls" & "," & _
-    "modules\common\DataSetIterator\v01\DataSetIterator.cls" & "," & _
-    "modules\common\TypeConvertor\v01\TypeConvertor.cls" & "," & _
-    "modules\exchange\Buffer\v01\Buffer.cls" & "," & _
-    "modules\exchange\ZigZagAbsolute\v01\ZigZagAbsolute.cls" & "," & _
-    "modules\exchange\ExchangeMethods\v01\ExchangeMethods.cls"
+  includedComponentsString = ""
+  includedComponentsString = includedComponentsString & "components\daily_snapshots\ProjectManager\v01\ProjectManager.bas"
+  includedComponentsString = includedComponentsString & "," & "components\daily_snapshots\Main\v01\Main.bas"
+  includedComponentsString = includedComponentsString & "," & "components\common\CommonMethods\v01\CommonMethods.cls"
+  includedComponentsString = includedComponentsString & "," & "components\common\Errors\v01\Errors.cls"
+  includedComponentsString = includedComponentsString & "," & "components\common\RWFile\v01\RWFile.cls"
+  includedComponentsString = includedComponentsString & "," & "components\common\RWini\v01\RWini.cls"
+  includedComponentsString = includedComponentsString & "," & "components\common\SettingsReader\v01\SettingsReader.cls"
+  includedComponentsString = includedComponentsString & "," & "components\common\DataSet\v01\DataSet.cls"
+  includedComponentsString = includedComponentsString & "," & "components\common\DataSetIterator\v01\DataSetIterator.cls"
+  includedComponentsString = includedComponentsString & "," & "components\common\TypeConvertor\v01\TypeConvertor.cls"
+  includedComponentsString = includedComponentsString & "," & "components\exchange\Buffer\v01\Buffer.cls"
+  includedComponentsString = includedComponentsString & "," & "components\exchange\ZigZagAbsolute\v01\ZigZagAbsolute.cls"
+  includedComponentsString = includedComponentsString & "," & "components\exchange\ExchangeMethods\v01\ExchangeMethods.cls"
   
   includedComponents = Split(includedComponentsString, ",")
   
@@ -49,7 +50,7 @@ Sub Init()
   
 End Sub
 
-Sub DeleteModules()
+Sub RemoveComponents()
   Dim cmpComponents As VBIDE.VBComponents
   Dim cmpComponent As VBIDE.VBComponent
   Dim exportFolder, exportClsFolder, exportFrmFolder, exportBasFolder As String
@@ -73,7 +74,7 @@ Sub DeleteModules()
 
 End Sub
 
-Sub ImportModules()
+Sub ImportComponents()
   'Dim thisWbFolder As String
   Dim cmpFilePath As Variant
   Dim cmpComponents As VBIDE.VBComponents
@@ -101,7 +102,7 @@ Sub ImportModules()
   
   Dim cnt As Long
   For Each cmpFilePath In includedComponents
-    If cmpFilePath <> Empty Then
+    If cmpFilePath <> Empty And InStr(cmpFilePath, "ProjectManager") = 0 Then
       'cmpFilePath = thisWbFolder & cmpFilePath
       If Not objFSO.FileExists(cmpFilePath) Then
         MsgBox "Can't open file """ & cmpFilePath & """"
@@ -113,7 +114,7 @@ Sub ImportModules()
   
 End Sub
 
-Sub ExportModules()
+Sub ExportComponents()
   Dim exportFolder, exportClsFolder, exportFrmFolder, exportBasFolder As String
   Dim cmpName, cmpFileName, cmpFileFolder As String
   Dim cmpFilePath As Variant
@@ -180,4 +181,6 @@ Sub ClearFolder(ByVal folderPath As String)
     Kill folderPath & "*.*"
   End If
 End Sub
+
+
 
