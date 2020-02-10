@@ -2,6 +2,12 @@
 _git.vbs
 bin/
 bkp/
-data/
+!data
+data/*
+!data/daily_snapshots/
+data/daily_snapshots/*
+!data/daily_snapshots/input/
+data/daily_snapshots/input/*
 !data/daily_snapshots/input/test.txt
+
 ~$*.xlsm
