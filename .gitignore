@@ -9,9 +9,15 @@ data/daily_snapshots/*
 !data/daily_snapshots/input/
 data/daily_snapshots/input/*
 !data/daily_snapshots/input/test.txt
+!data/daily_snapshots/output/
+data/daily_snapshots/output/*
+!data/daily_snapshots/output/zz_base.txt
+!data/daily_snapshots/output/zz_first.txt
+!data/daily_snapshots/output/zz_second.txt
 
 ~$*.xlsm
 ~$*.xlsx
 ~$*.docx
 ~$*.xls
 ~$*.doc
+~*.tmp
