@@ -36,6 +36,8 @@ Sub Init()
   includedComponentsString = includedComponentsString & "," & "components\common\DataSet\v01\DataSet.cls"
   includedComponentsString = includedComponentsString & "," & "components\common\DataSetIterator\v01\DataSetIterator.cls"
   includedComponentsString = includedComponentsString & "," & "components\common\TypeConvertor\v01\TypeConvertor.cls"
+  includedComponentsString = includedComponentsString & "," & "components\common\DataSetTools\v01\DataSetTools.cls"
+  
   includedComponentsString = includedComponentsString & "," & "components\exchange\Buffer\v01\Buffer.cls"
   includedComponentsString = includedComponentsString & "," & "components\exchange\ZigZagAbsolute\v01\ZigZagAbsolute.cls"
   includedComponentsString = includedComponentsString & "," & "components\exchange\ExchangeMethods\v01\ExchangeMethods.cls"
