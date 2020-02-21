@@ -64,17 +64,50 @@ Private Sub CreateJoinedDataSet(DS1 As DataSet, DS1_Settings As Scripting.Dictio
   Call JoinedDS.Create(JoinedDS_Settings)
 End Sub
 
-Private Sub FillCross(dt As Long, tm As Long, DS1 As DataSet, DS1_rowCount As Long, DS2 As DataSet, DS2_rowCount As Long, JoinRules As Scripting.Dictionary, JoinedDS As DataSet, JoinedDS_rowCount As Long)
+Private Sub FillCross(ByVal dt As Long, ByVal tm As Long, DS1 As DataSet, DS1_rowCount As Long, DS2 As DataSet, DS2_rowCount As Long, JoinRules As Scripting.Dictionary, JoinedDS As DataSet, JoinedDS_rowCount As Long)
+  Dim col As Variant
+  
+  Call JoinedDS.SetCell("<DATE>", JoinedDS_rowCount, dt)
+  Call JoinedDS.SetCell("<TIME>", JoinedDS_rowCount, tm)
+  
+  For Each col In JoinRules("ds1_columns")
+    Call JoinedDS.SetCell(JoinRules("ds1_columns")(col), JoinedDS_rowCount, DS1.GetCell(col, DS1_rowCount))
+  Next col
+  For Each col In JoinRules("ds2_columns")
+    Call JoinedDS.SetCell(JoinRules("ds2_columns")(col), JoinedDS_rowCount, DS2.GetCell(col, DS2_rowCount))
+  Next col
   
   JoinedDS_rowCount = JoinedDS_rowCount + 1
 End Sub
 
-Private Sub FillLeft()
+Private Sub FillLeft(ByVal dt As Long, ByVal tm As Long, DS1 As DataSet, DS1_rowCount As Long, DS2 As DataSet, DS2_rowCount As Long, JoinRules As Scripting.Dictionary, JoinedDS As DataSet, JoinedDS_rowCount As Long)
+  Dim col As Variant
+  
+  Call JoinedDS.SetCell("<DATE>", JoinedDS_rowCount, dt)
+  Call JoinedDS.SetCell("<TIME>", JoinedDS_rowCount, tm)
+  
+  For Each col In JoinRules("ds1_columns")
+    Call JoinedDS.SetCell(JoinRules("ds1_columns")(col), JoinedDS_rowCount, DS1.GetCell(col, DS1_rowCount))
+  Next col
+  For Each col In JoinRules("ds2_columns")
+    Call JoinedDS.SetCell(JoinRules("ds2_columns")(col), JoinedDS_rowCount, Null)
+  Next col
   
   JoinedDS_rowCount = JoinedDS_rowCount + 1
 End Sub
 
-Private Sub FillRight()
+Private Sub FillRight(ByVal dt As Long, ByVal tm As Long, DS1 As DataSet, DS1_rowCount As Long, DS2 As DataSet, DS2_rowCount As Long, JoinRules As Scripting.Dictionary, JoinedDS As DataSet, JoinedDS_rowCount As Long)
+  Dim col As Variant
+  
+  Call JoinedDS.SetCell("<DATE>", JoinedDS_rowCount, dt)
+  Call JoinedDS.SetCell("<TIME>", JoinedDS_rowCount, tm)
+  
+  For Each col In JoinRules("ds1_columns")
+    Call JoinedDS.SetCell(JoinRules("ds1_columns")(col), JoinedDS_rowCount, Null)
+  Next col
+  For Each col In JoinRules("ds2_columns")
+    Call JoinedDS.SetCell(JoinRules("ds2_columns")(col), JoinedDS_rowCount, DS2.GetCell(col, DS2_rowCount))
+  Next col
   
   JoinedDS_rowCount = JoinedDS_rowCount + 1
 End Sub
@@ -83,7 +116,9 @@ Sub FullJoin(DS1 As DataSet, ByVal DS1_Settings As Scripting.Dictionary, DS2 As 
   Dim DS1_i As New DataSetIterator
   Dim DS2_i As New DataSetIterator
   Dim JoinedDS_rowCount As Long
-  Dim exitWhile As Boolean
+  Dim exitWhile, DecCount As Boolean
+  Dim dt1, dt2 As Long
+  Dim tm1, tm2 As Long
     
   Call CreateJoinedDataSet(DS1, DS1_Settings, DS2, DS2_Settings, JoinedDS, JoinedDS_Settings, JoinRules)
   
@@ -92,34 +127,39 @@ Sub FullJoin(DS1 As DataSet, ByVal DS1_Settings As Scripting.Dictionary, DS2 As 
   
   JoinedDS_rowCount = 0
   While Not DS1_i.EndOfDS
-    dt1 = DS2.GetCell("<DATE>", DS1_i.rowCount)
-    tm1 = DS2.GetCell("<TIME>", DS1_i.rowCount)
+    dt1 = DS1.GetCell("<DATE>", DS1_i.rowCount)
+    tm1 = DS1.GetCell("<TIME>", DS1_i.rowCount)
     
     exitWhile = False
+    DecCount = False
     While Not DS2_i.EndOfDS And Not exitWhile
       dt2 = DS2.GetCell("<DATE>", DS2_i.rowCount)
       tm2 = DS2.GetCell("<TIME>", DS2_i.rowCount)
       
       If dt1 = dt2 Then
         If tm1 = tm2 Then
-          Call FillCross
+          Call FillCross(dt1, tm1, DS1, DS1_i.rowCount, DS2, DS2_i.rowCount, JoinRules, JoinedDS, JoinedDS_rowCount)
           exitWhile = True
         ElseIf tm1 < tm2 Then
-          Call FillLeft
-          DS2_i.rowCount = DS2_i.rowCount - 1 '!!!!!!!!!!!!!!!!!! -1
+          Call FillLeft(dt1, tm1, DS1, DS1_i.rowCount, DS2, DS2_i.rowCount, JoinRules, JoinedDS, JoinedDS_rowCount)
+          'DS2_i.rowCount = DS2_i.rowCount - 1 '!!!!!!!!!!!!!!!!!! -1
           exitWhile = True
+          DecCount = True
         Else
-          Call FillRight
+          Call FillRight(dt2, tm2, DS1, DS1_i.rowCount, DS2, DS2_i.rowCount, JoinRules, JoinedDS, JoinedDS_rowCount)
         End If
       ElseIf dt1 < dt2 Then
-        Call FillLeft
-        DS2_i.rowCount = DS2_i.rowCount - 1 '!!!!!!!!!!!!!!!!!! -1
+        Call FillLeft(dt2, tm2, DS1, DS1_i.rowCount, DS2, DS2_i.rowCount, JoinRules, JoinedDS, JoinedDS_rowCount)
+        'DS2_i.rowCount = DS2_i.rowCount - 1 '!!!!!!!!!!!!!!!!!! -1
         exitWhile = True
+        DecCount = True
       Else
-        Call FillRight
+        Call FillRight(dt2, tm2, DS1, DS1_i.rowCount, DS2, DS2_i.rowCount, JoinRules, JoinedDS, JoinedDS_rowCount)
       End If
       
-      Call DS2_i.NextRow
+      If Not DecCount = True Then
+        Call DS2_i.NextRow
+      End If
     Wend
     
     Call DS1_i.NextRow
@@ -128,7 +168,7 @@ Sub FullJoin(DS1 As DataSet, ByVal DS1_Settings As Scripting.Dictionary, DS2 As 
   While Not DS1_i.EndOfDS
     dt1 = DS2.GetCell("<DATE>", DS1_i.rowCount)
     tm1 = DS2.GetCell("<TIME>", DS1_i.rowCount)
-    Call FillLeft
+    Call FillLeft(dt1, tm1, DS1, DS1_i.rowCount, DS2, DS2_i.rowCount, JoinRules, JoinedDS, JoinedDS_rowCount)
     
     Call DS1_i.NextRow
   Wend
@@ -136,11 +176,11 @@ Sub FullJoin(DS1 As DataSet, ByVal DS1_Settings As Scripting.Dictionary, DS2 As 
    While Not DS2_i.EndOfDS
     dt2 = DS2.GetCell("<DATE>", DS2_i.rowCount)
     tm2 = DS2.GetCell("<TIME>", DS2_i.rowCount)
-    Call FillRight
+    Call FillRight(dt2, tm2, DS1, DS1_i.rowCount, DS2, DS2_i.rowCount, JoinRules, JoinedDS, JoinedDS_rowCount)
     
     Call DS2_i.NextRow
   Wend
   
-  
+  JoinedDS.rowsCount = JoinedDS_rowCount '- 1
   
 End Sub
