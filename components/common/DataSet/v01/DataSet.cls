@@ -91,7 +91,7 @@ Sub ReadFromFile(ByVal filePath As String, ByVal dsSettings As Scripting.Diction
       For Each colName In colIndex
         colCount = colIndex(colName)
         'colType = dsSettings("column_type")(colName)
-        colType = Settings_Reader.GetValue(dsSettings("column_type"), CStr(colName))
+          colType = Settings_Reader.GetValue(dsSettings("column_type"), CStr(colName))
         table(colCount)(rowCount) = Type_Convertor.Cast(lineParts(colCount), colType, dsSettings("decimal"))
       Next colName
       rowCount = rowCount + 1

@@ -87,3 +87,47 @@ Sub ComposeSettings(settings As Scripting.Dictionary, settingsLnk As Scripting.D
     End If
   Next
 End Sub
+
+Sub DecomposeSettings(settings As Scripting.Dictionary, line As String)
+  Dim k As Variant
+  
+  For Each k In settings
+    If TypeName(settings(k)) = "Dictionary" Then
+      line = line & vbTab & k & " = " & "3zz_ds_" & k & vbCrLf
+      Call DecomposeSettings(settings(k), line)
+    Else
+      line = line & vbTab & k & " = " & settings(k) & vbCrLf
+    End If
+  Next k
+End Sub
+
+Sub WriteSettings(filePath As String, settings As Scripting.Dictionary)
+  Dim RW_File As New RWFile
+  Dim line As String
+  
+  
+  Call RW_File.OpenFile(filePath, "w")
+  If My_Err.errOccured Then
+    Exit Sub
+  End If
+  
+  line = "[3zz_ds]" & vbCrLf
+  line2
+  Call DecomposeSettings(settings, line)
+  Debug.Print line
+  
+'  line = "[" & "3zz_ds" & "]"
+'  For Each sec In settings
+'    If TypeName(sec) = "Dictionary" Then
+'
+'    Else
+'      line = "[" & sec & "]"
+'    End If
+'    RW_File.WriteLine line
+'  Next sec
+  
+  
+  
+  Call RW_File.CloseFile
+  
+End Sub

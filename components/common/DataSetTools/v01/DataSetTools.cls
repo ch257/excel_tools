@@ -52,9 +52,11 @@ Sub InsertSettings(fromDict As Scripting.Dictionary, JoinRules As Scripting.Dict
             End If
         End If
     Next
-    For Each k In columns
-      toDict("columns") = toDict("columns") & "," & columns(k)
-    Next k
+    If toDict.Exists("columns") Then
+      For Each k In columns
+        toDict("columns") = toDict("columns") & "," & columns(k)
+      Next k
+    End If
 End Sub
 
 Private Sub CreateJoinedDataSet(DS1 As DataSet, DS1_Settings As Scripting.Dictionary, DS2 As DataSet, DS2_Settings As Scripting.Dictionary, JoinedDS As DataSet, JoinedDS_Settings As Scripting.Dictionary, JoinRules As Scripting.Dictionary)

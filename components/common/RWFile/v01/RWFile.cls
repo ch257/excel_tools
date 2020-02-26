@@ -48,6 +48,6 @@ Sub WriteLine(line As String)
   Print #fileNum, line
 End Sub
 
-Sub CloseFile()
+ Sub CloseFile()
   Close #fileNum
 End Sub
