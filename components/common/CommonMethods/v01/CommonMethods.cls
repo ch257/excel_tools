@@ -15,7 +15,9 @@ Sub CopyDict(ByRef fromDict As Scripting.Dictionary, ByRef toDict As Scripting.D
     For Each k In fromDict.keys
         If TypeName(fromDict(k)) = "Dictionary" Then
             Set emptyDict = Nothing
-            toDict.Add k, emptyDict
+            If Not toDict.Exists(k) Then
+              toDict.Add k, emptyDict
+            End If
             Call CopyDict(fromDict(k), toDict(k))
         Else
             If toDict.Exists(k) Then

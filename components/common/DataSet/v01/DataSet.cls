@@ -184,11 +184,12 @@ Function GetRowIndex() As Long()
   ReDim Preserve GetRowIndex(rowsCount - 1)
 End Function
 
-'Function GetCol(ByVal colName As String) As Variant()
-'  GetCol = table(colIndex(colName))
-'  ReDim Preserve GetCol(rowsCount - 1)
-'End Function
-'
+Function GetCol(ByVal colName As String) As Variant()
+  GetCol = table(colIndex(colName))
+  ReDim Preserve GetCol(rowsCount - 1)
+End Function
+
+
 'Function GetIndexByColValue(ByVal colName As String, val As Variant) As Long
 '  Dim colCount, rowCount As Long
 '  Dim col_val As Variant

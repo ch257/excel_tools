@@ -96,16 +96,22 @@ Sub Run()
   
   
   If Not My_Err.errOccured Then
-    Dim zz_filePath, zz_ds_settings_file As String
+    Dim zz_filePath, zz_ds_settings_file, zz_ds_plot_settings_file As String
     Dim zz_ds_settings As New Scripting.Dictionary
     Dim RW_Ini As New RWini
     Dim zzCSV As New DataSet
+    Dim ChPl As New ChartPlotter
     
     zz_filePath = thisWbFolder & "data\daily_snapshots\output\3zz.txt"
     zz_ds_settings_file = thisWbFolder & "settings\daily_snapshots\3zz_ds.ini"
+    zz_ds_plot_settings_file = thisWbFolder & "settings\daily_snapshots\3zz_ds_plot.ini"
     Call RW_Ini.ReadSettings(zz_ds_settings_file, zz_ds_settings)
+    Call RW_Ini.ReadSettings(zz_ds_plot_settings_file, zz_ds_settings)
     Call RW_Ini.ComposeSettings(zz_ds_settings, zz_ds_settings)
     Call zzCSV.ReadFromFile(zz_filePath, zz_ds_settings("3zz_ds"))
+    
+    Call ChPl.PlotChart(zzCSV, zz_ds_settings("3zz_ds_plot"), "PM")
+        
   End If
   
   If My_Err.errOccured Then

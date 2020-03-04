@@ -11,7 +11,8 @@ Option Explicit
 
 Function Cast(val As Variant, vType As String, dec As String) As Variant
   If val = "" Then
-    Cast = Null
+    'Cast = Null
+    Cast = Empty
     Exit Function
   End If
   If vType = "num" Then
@@ -39,7 +40,8 @@ End Function
 
 Function FormatV(val As Variant, vFormat As String, dec As String) As String
   'Dim s As String
-  If IsNull(val) Then
+  'If IsNull(val) Then
+  If IsEmpty(val) Then
     FormatV = ""
     Exit Function
   End If

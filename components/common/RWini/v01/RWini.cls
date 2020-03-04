@@ -36,7 +36,7 @@ Function ParseLine(ByVal line As String) As String()
   ParseLine = retVals
 End Function
 
-Sub ReadSettings(filePath As String, settings As Scripting.Dictionary)
+Sub ReadSettings(ByVal filePath As String, settings As Scripting.Dictionary)
   Dim RW_File As New RWFile
   Dim line As String
   Dim lineParts() As String
