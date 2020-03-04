@@ -60,99 +60,6 @@ Sub CreateLineChart(AxesParams As Scripting.Dictionary, SeriaValues, SeriaXValue
   Set objCht = Nothing
 End Sub
 
-Sub CreateYAx(AxesParams As Scripting.Dictionary, SeriaXValues)
-  
-  Dim objCht As ChartObject
-  Set objCht = Sheets(AxesParams("SheetName")).ChartObjects.Add( _
-    AxesParams("topXPosition") - AxesParams("Y_ax_width"), _
-    AxesParams("topYposition"), _
-    AxesParams("chartWidth") + AxesParams("Y_ax_width"), _
-    AxesParams("chartHeight") _
-  )
-  objCht.Chart.ChartType = xlLine
-  objCht.Chart.Axes(xlValue).MinimumScale = AxesParams("Y_min")
-  objCht.Chart.Axes(xlValue).MaximumScale = AxesParams("Y_max")
-  
-  Dim SeriaValues() As Double
-  Dim itm As Variant
-  Dim cnt As Long
-  ReDim SeriaValues(AxesParams("X_max"))
-  cnt = AxesParams("X_min")
-  For Each itm In SeriaXValues
-    SeriaValues(cnt) = AxesParams("Y_min") - AxesParams("PlotAreaMargin")
-    cnt = cnt + 1
-  Next itm
-  
-  objCht.Chart.SeriesCollection.NewSeries
-  objCht.Chart.SeriesCollection(1).Values = SeriaValues
-  objCht.Chart.SeriesCollection(1).XValues = SeriaXValues
-  
-  objCht.Chart.Legend.Delete
-  
-  objCht.Chart.Axes(xlCategory).Delete
-'  objCht.Chart.Axes(xlValue).Delete
-'  objCht.Chart.Axes(xlValue).MajorGridlines.Delete
-  
-  Dim temp As Integer 'Office bug
-  temp = objCht.Chart.PlotArea.Width 'Office bug
-  
-  objCht.Chart.PlotArea.Width = AxesParams("chartWidth") - AxesParams("PlotAreaMargin") + AxesParams("Y_ax_width")
-  objCht.Chart.PlotArea.Height = AxesParams("chartHeight") - AxesParams("PlotAreaMargin")
-  objCht.Chart.PlotArea.Left = 21 '+4 from Office chart
-  objCht.Chart.PlotArea.Top = 21 '+4 from Office chart
-  
-  Set objCht = Nothing
-End Sub
-
-Sub CreateXAx(AxesParams As Scripting.Dictionary, SeriaXValues)
-  
-  Dim objCht As ChartObject
-  Set objCht = Sheets(AxesParams("SheetName")).ChartObjects.Add( _
-    AxesParams("topXPosition"), _
-    AxesParams("topYposition"), _
-    AxesParams("chartWidth"), _
-    AxesParams("chartHeight") + AxesParams("X_ax_height") _
-  )
-  objCht.Chart.ChartType = xlLine
-  objCht.Chart.Axes(xlValue).MinimumScale = AxesParams("Y_min")
-  objCht.Chart.Axes(xlValue).MaximumScale = AxesParams("Y_max")
-  
-  Dim SeriaValues() As Double
-  Dim itm As Variant
-  Dim cnt As Long
-  ReDim SeriaValues(AxesParams("X_max"))
-  cnt = AxesParams("X_min")
-  For Each itm In SeriaXValues
-    SeriaValues(cnt) = AxesParams("Y_min") - AxesParams("PlotAreaMargin")
-    cnt = cnt + 1
-  Next itm
-  
-  objCht.Chart.SeriesCollection.NewSeries
-  objCht.Chart.SeriesCollection(1).Values = SeriaValues
-  objCht.Chart.SeriesCollection(1).XValues = SeriaXValues
-  
-  objCht.Chart.Legend.Delete
-  
-'  objCht.Chart.Axes(xlCategory).Delete
-  objCht.Chart.Axes(xlValue).Delete
-  objCht.Chart.Axes(xlValue).MajorGridlines.Delete
-
-'  ActiveChart.SetElement (msoElementPrimaryCategoryAxisShow)
-'  ActiveChart.SetElement (msoElementPrimaryValueAxisNone)
-'  objCht.Chart.SetElement (msoElementPrimaryValueGridLinesNone)
-  
-  objCht.Chart.SetElement (msoElementPrimaryCategoryGridLinesMajor)
-  Dim temp As Integer 'Office bug
-  temp = objCht.Chart.PlotArea.Width 'Office bug
-  
-  objCht.Chart.PlotArea.Width = AxesParams("chartWidth") - AxesParams("PlotAreaMargin")
-  objCht.Chart.PlotArea.Height = AxesParams("chartHeight") - AxesParams("PlotAreaMargin") + AxesParams("X_ax_height")
-  objCht.Chart.PlotArea.Left = 21 '+4 from Office chart
-  objCht.Chart.PlotArea.Top = 21 '+4 from Office chart
-  
-  Set objCht = Nothing
-End Sub
-
 Sub CreateXAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As String)
   Dim objCht As ChartObject
   Dim axes_height, axes_width As Integer
@@ -343,7 +250,7 @@ Function GetExtr(seria() As Variant) As Variant()
   GetExtr = extr
 End Function
 
-Sub GetExtrem(DS As DataSet, plotSettings As Scripting.Dictionary)
+Sub SetPlotSettingsExtrem(DS As DataSet, DS_Settings As Scripting.Dictionary)
   Dim series_columns() As String
   Dim seria() As Variant
   Dim col As Variant
@@ -351,48 +258,50 @@ Sub GetExtrem(DS As DataSet, plotSettings As Scripting.Dictionary)
   Dim plotSettingsCopy As New Scripting.Dictionary
   Dim CM As New CommonMethods
   Dim SubPlotNumber As String
-  Dim mx, mn As Variant
+  Dim Type_Convertor As New TypeConvertor
+  Dim Settings_Reader As New SettingsReader
+  Dim colType As String
   
+  Call CM.CopyDict(DS_Settings("plot_settings"), plotSettingsCopy)
   
-  Call CM.CopyDict(plotSettings, plotSettingsCopy)
-  
-  series_columns = Split(plotSettings("series_columns"), ",")
+  series_columns = Split(DS_Settings("plot_settings")("series_columns"), ",")
   For Each col In series_columns
     SubPlotNumber = plotSettingsCopy("series_subplot")(col)
-    If plotSettings("subplot_y_min")(SubPlotNumber) = "auto" Or plotSettings("subplot_y_max")(SubPlotNumber) = "auto" Then
+    If DS_Settings("plot_settings")("subplot_y_min")(SubPlotNumber) = "auto" Or DS_Settings("plot_settings")("subplot_y_max")(SubPlotNumber) = "auto" Then
       seria = DS.GetCol(col)
       extr() = GetExtr(seria)
-      If plotSettings("subplot_y_min")(SubPlotNumber) = "auto" Then
-        If plotSettingsCopy("subplot_y_min")(SubPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_min")(SubPlotNumber) > mn Then
+      If DS_Settings("plot_settings")("subplot_y_min")(SubPlotNumber) = "auto" Then
+        If plotSettingsCopy("subplot_y_min")(SubPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_min")(SubPlotNumber) > extr(0) Then
           plotSettingsCopy("subplot_y_min")(SubPlotNumber) = extr(0)
         End If
+      Else
+        colType = Settings_Reader.GetValue(DS_Settings("column_type"), col)
+        plotSettingsCopy("subplot_y_min")(SubPlotNumber) = Type_Convertor.Cast(plotSettingsCopy("subplot_y_min")(SubPlotNumber), colType, DS_Settings("decimal"))
       End If
-      If plotSettings("subplot_y_max")(SubPlotNumber) = "auto" Then
-        If plotSettingsCopy("subplot_y_max")(SubPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_max")(SubPlotNumber) < mx Then
+      If DS_Settings("plot_settings")("subplot_y_max")(SubPlotNumber) = "auto" Then
+        If plotSettingsCopy("subplot_y_max")(SubPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_max")(SubPlotNumber) < extr(1) Then
           plotSettingsCopy("subplot_y_max")(SubPlotNumber) = extr(1)
         End If
+      Else
+        colType = Settings_Reader.GetValue(DS_Settings("column_type"), col)
+        plotSettingsCopy("subplot_y_max")(SubPlotNumber) = Type_Convertor.Cast(plotSettingsCopy("subplot_y_max")(SubPlotNumber), colType, DS_Settings("decimal"))
       End If
     End If
-    
   Next col
   
-  Call CM.CopyDict(plotSettingsCopy, plotSettings)
+  Call CM.CopyDict(plotSettingsCopy, DS_Settings("plot_settings"))
   
-  Debug.Print plotSettings("subplot_y_min")("1"), plotSettingsCopy("subplot_y_max")("1")
-  Debug.Print plotSettings("subplot_y_min")("2"), plotSettingsCopy("subplot_y_max")("2")
+  Debug.Print DS_Settings("plot_settings")("subplot_y_min")("1"), DS_Settings("plot_settings")("subplot_y_max")("1")
+  Debug.Print DS_Settings("plot_settings")("subplot_y_min")("2"), DS_Settings("plot_settings")("subplot_y_max")("2")
 
 End Sub
 
-Sub PlotChart(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As String)
-  Dim seriesColumns() As String
-  Dim sCol As Variant
-  
-  'Dim AxesParams As New Scripting.Dictionary
+Sub PlotChart(DS As DataSet, ByVal DS_Settings As Scripting.Dictionary, SheetName As String)
   
   Call DeleteCharts
-  Call GetExtrem(DS, plotSettings)
+  Call SetPlotSettingsExtrem(DS, DS_Settings)
   
-  Call CreateAxes(plotSettings, DS.GetRowIndex(), SheetName)
+  Call CreateAxes(DS_Settings("plot_settings"), DS.GetRowIndex(), SheetName)
   
   
   

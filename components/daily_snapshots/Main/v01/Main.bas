@@ -110,7 +110,7 @@ Sub Run()
     Call RW_Ini.ComposeSettings(zz_ds_settings, zz_ds_settings)
     Call zzCSV.ReadFromFile(zz_filePath, zz_ds_settings("3zz_ds"))
     
-    Call ChPl.PlotChart(zzCSV, zz_ds_settings("3zz_ds_plot"), "PM")
+    Call ChPl.PlotChart(zzCSV, zz_ds_settings("3zz_ds"), "PM")
         
   End If
   

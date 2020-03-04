@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-Function GetValue(dict As Scripting.Dictionary, key As String) As String
+Function GetValue(ByVal dict As Scripting.Dictionary, ByVal key As String) As String
   If dict.Exists(key) Then
     GetValue = dict(key)
   ElseIf dict.Exists("default") Then
