@@ -14,7 +14,6 @@ Option Explicit
 '  Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long) 'For 32 Bit Systems
 '#End If
 
-
 Sub DeleteCharts()
   Dim chtObj As ChartObject
   For Each chtObj In ActiveSheet.ChartObjects
@@ -23,7 +22,6 @@ Sub DeleteCharts()
 End Sub
 
 Sub CreateLineChart(AxesParams As Scripting.Dictionary, SeriaValues, SeriaXValues)
-  
   Dim objCht As ChartObject
   Set objCht = Sheets(AxesParams("SheetName")).ChartObjects.Add( _
     AxesParams("topXPosition"), _
@@ -109,10 +107,10 @@ Sub CreateXAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As Strin
   Dim temp As Integer 'Office bug
   temp = objCht.Chart.PlotArea.Width 'Office bug
   
-  objCht.Chart.PlotArea.Width = axes_width - y_axis_width - 5
-  objCht.Chart.PlotArea.Height = axes_height - 19
-  objCht.Chart.PlotArea.Left = y_axis_width
-  objCht.Chart.PlotArea.Top = 9
+  objCht.Chart.PlotArea.InsideWidth = axes_width - y_axis_width * 2
+  objCht.Chart.PlotArea.InsideHeight = axes_height - x_axis_height - 5
+  objCht.Chart.PlotArea.InsideLeft = y_axis_width - 5
+  objCht.Chart.PlotArea.InsideTop = 5
   
   'objCht.Chart.PlotArea.Format.line.Visible = msoFalse
   
@@ -124,7 +122,6 @@ Sub CreateXAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As Strin
     .Transparency = 0
     .DashStyle = msoLineDash
   End With
-
 End Sub
 
 Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As String, plotSettingsShift As Scripting.Dictionary)
@@ -132,9 +129,11 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName A
   Dim subplot_axes_height, axes_width As Integer
   Dim x_axis_height, y_axis_width As Integer
   Dim axes_bind_position() As String
+  Dim subPlotNumber As String
   
   axes_width = plotSettings("axes_width")
   subplot_axes_height = plotSettingsShift("subplot_axes_height")
+  subPlotNumber = plotSettingsShift("subplot_number")
   'x_axis_height = plotSettings("x_axis_height")
   y_axis_width = plotSettings("y_axis_width")
   axes_bind_position = Split(plotSettings("axes_bind_position"), ",")
@@ -146,16 +145,14 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName A
     subplot_axes_height _
   )
   objCht.Chart.ChartType = xlLine
-  objCht.Chart.Axes(xlValue).MinimumScale = 0
-  objCht.Chart.Axes(xlValue).MaximumScale = 1
   
-  Dim SeriaValues() As Integer
+  Dim SeriaValues() As Variant
   Dim itm As Variant
   Dim cnt As Long
   ReDim SeriaValues(UBound(XIndex) - LBound(XIndex))
   cnt = 0
   For Each itm In XIndex
-    SeriaValues(cnt) = -1
+    SeriaValues(cnt) = plotSettings("subplot_y_min")(subPlotNumber) - plotSettings("subplot_y_max")(subPlotNumber)
     cnt = cnt + 1
   Next itm
   
@@ -167,13 +164,17 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName A
   objCht.Chart.Axes(xlCategory).Delete
   objCht.Chart.PlotArea.Format.line.ForeColor.ObjectThemeColor = msoThemeColorText1
   
+  objCht.Chart.Axes(xlValue).MinimumScale = plotSettings("subplot_y_min")(subPlotNumber)
+  objCht.Chart.Axes(xlValue).MaximumScale = plotSettings("subplot_y_max")(subPlotNumber)
+  objCht.Chart.Axes(xlValue).MajorUnit = plotSettings("subplot_y_step")(subPlotNumber)
+  
   Dim temp As Integer 'Office bug
   temp = objCht.Chart.PlotArea.Width 'Office bug
   
-  objCht.Chart.PlotArea.Width = axes_width - y_axis_width - 3
-'  objCht.Chart.PlotArea.Height = axes_height - 19
-  objCht.Chart.PlotArea.Left = y_axis_width - 15
-'  objCht.Chart.PlotArea.Top = 9
+  objCht.Chart.PlotArea.InsideWidth = axes_width - y_axis_width * 2
+  objCht.Chart.PlotArea.InsideHeight = subplot_axes_height - 10
+  objCht.Chart.PlotArea.InsideLeft = y_axis_width - 5
+  objCht.Chart.PlotArea.InsideTop = 5
   
   Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Fill.Visible = msoFalse
   Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
@@ -188,7 +189,6 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName A
     .Transparency = 0
     .DashStyle = msoLineDash
   End With
-  
 End Sub
 
 Sub CreateAxes(plotSettings As Scripting.Dictionary, XIndex, SheetName As String)
@@ -199,7 +199,7 @@ Sub CreateAxes(plotSettings As Scripting.Dictionary, XIndex, SheetName As String
     Dim plotSettingsShift As New Scripting.Dictionary
     Dim axes_bind_position_y As Integer
     Dim axes_height, subplot_axes_height, axes_width As Integer
-    
+    Dim subPlotNumber As String
     Call CreateXAxis(plotSettings, XIndex, SheetName)
     
     subplot_height_share = Split(plotSettings("subplot_height_share"), ",")
@@ -209,21 +209,24 @@ Sub CreateAxes(plotSettings As Scripting.Dictionary, XIndex, SheetName As String
     Next heightShare
     
     axes_width = plotSettings("axes_width")
-    axes_height = plotSettings("axes_height") - plotSettings("x_axis_height") - 6
-    axes_bind_position_y = 6
+    axes_height = plotSettings("axes_height") - plotSettings("x_axis_height")
+    axes_bind_position_y = 5
+    subPlotNumber = 0
     For Each heightShare In subplot_height_share
+      subPlotNumber = subPlotNumber + 1
       Set plotSettingsShift = Nothing
       plotSettingsShift.Add "axes_bind_position_y", axes_bind_position_y
       subplot_axes_height = CInt(axes_height * heightShare / height100)
       plotSettingsShift.Add "subplot_axes_height", subplot_axes_height
+      plotSettingsShift.Add "subplot_number", subPlotNumber
       
       Call CreateSubplotYAxis(plotSettings, XIndex, SheetName, plotSettingsShift)
       axes_bind_position_y = axes_bind_position_y + subplot_axes_height
     Next heightShare
 End Sub
 
-Function GetExtr(seria() As Variant) As Variant()
-  Dim extr() As Variant
+Function GetExtr(seria() As Variant) As Double()
+  Dim extr() As Double
   ReDim extr(1)
   Dim itm As Variant
   Dim mx, mn As Variant
@@ -245,8 +248,8 @@ Function GetExtr(seria() As Variant) As Variant()
       End If
     End If
   Next itm
-  extr(0) = mn
-  extr(1) = mx
+  extr(0) = CDbl(mn)
+  extr(1) = CDbl(mx)
   GetExtr = extr
 End Function
 
@@ -254,46 +257,72 @@ Sub SetPlotSettingsExtrem(DS As DataSet, DS_Settings As Scripting.Dictionary)
   Dim series_columns() As String
   Dim seria() As Variant
   Dim col As Variant
-  Dim extr() As Variant
+  Dim extr() As Double
   Dim plotSettingsCopy As New Scripting.Dictionary
   Dim CM As New CommonMethods
-  Dim SubPlotNumber As String
-  Dim Type_Convertor As New TypeConvertor
+  Dim subPlotNumber As String
   Dim Settings_Reader As New SettingsReader
-  Dim colType As String
+  Dim heightShare As Variant
+  Dim subPlotCnt As Integer
+  Dim subplotYMin, subplotYMax, subplotYStep As Double
   
   Call CM.CopyDict(DS_Settings("plot_settings"), plotSettingsCopy)
   
   series_columns = Split(DS_Settings("plot_settings")("series_columns"), ",")
   For Each col In series_columns
-    SubPlotNumber = plotSettingsCopy("series_subplot")(col)
-    If DS_Settings("plot_settings")("subplot_y_min")(SubPlotNumber) = "auto" Or DS_Settings("plot_settings")("subplot_y_max")(SubPlotNumber) = "auto" Then
+    subPlotNumber = plotSettingsCopy("series_subplot")(col)
+    If DS_Settings("plot_settings")("subplot_y_min")(subPlotNumber) = "auto" Or DS_Settings("plot_settings")("subplot_y_max")(subPlotNumber) = "auto" Then
       seria = DS.GetCol(col)
       extr() = GetExtr(seria)
-      If DS_Settings("plot_settings")("subplot_y_min")(SubPlotNumber) = "auto" Then
-        If plotSettingsCopy("subplot_y_min")(SubPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_min")(SubPlotNumber) > extr(0) Then
-          plotSettingsCopy("subplot_y_min")(SubPlotNumber) = extr(0)
+      If DS_Settings("plot_settings")("subplot_y_min")(subPlotNumber) = "auto" Then
+        If plotSettingsCopy("subplot_y_min")(subPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_min")(subPlotNumber) > extr(0) Then
+          plotSettingsCopy("subplot_y_min")(subPlotNumber) = extr(0)
         End If
       Else
-        colType = Settings_Reader.GetValue(DS_Settings("column_type"), col)
-        plotSettingsCopy("subplot_y_min")(SubPlotNumber) = Type_Convertor.Cast(plotSettingsCopy("subplot_y_min")(SubPlotNumber), colType, DS_Settings("decimal"))
+        plotSettingsCopy("subplot_y_min")(subPlotNumber) = CDbl(plotSettingsCopy("subplot_y_min")(subPlotNumber))
       End If
-      If DS_Settings("plot_settings")("subplot_y_max")(SubPlotNumber) = "auto" Then
-        If plotSettingsCopy("subplot_y_max")(SubPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_max")(SubPlotNumber) < extr(1) Then
-          plotSettingsCopy("subplot_y_max")(SubPlotNumber) = extr(1)
+      If DS_Settings("plot_settings")("subplot_y_max")(subPlotNumber) = "auto" Then
+        If plotSettingsCopy("subplot_y_max")(subPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_max")(subPlotNumber) < extr(1) Then
+          plotSettingsCopy("subplot_y_max")(subPlotNumber) = extr(1)
         End If
       Else
-        colType = Settings_Reader.GetValue(DS_Settings("column_type"), col)
-        plotSettingsCopy("subplot_y_max")(SubPlotNumber) = Type_Convertor.Cast(plotSettingsCopy("subplot_y_max")(SubPlotNumber), colType, DS_Settings("decimal"))
+        plotSettingsCopy("subplot_y_max")(subPlotNumber) = CDbl(plotSettingsCopy("subplot_y_max")(subPlotNumber))
       End If
     End If
   Next col
   
+  subPlotCnt = 1
+  For Each heightShare In Split(DS_Settings("plot_settings")("subplot_height_share"), ",")
+    If DS_Settings("plot_settings")("subplot_y_step")(CStr(subPlotCnt)) = "auto" Then
+      plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt)) = _
+        (plotSettingsCopy("subplot_y_max")(CStr(subPlotCnt)) - _
+        plotSettingsCopy("subplot_y_min")(CStr(subPlotCnt))) / 5
+    Else
+      plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt)) = CDbl(plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt)))
+    End If
+    
+    If DS_Settings("plot_settings")("subplot_y_min")(CStr(subPlotCnt)) = "auto" Then
+      subplotYMin = plotSettingsCopy("subplot_y_min")(CStr(subPlotCnt))
+      subplotYMax = plotSettingsCopy("subplot_y_max")(CStr(subPlotCnt))
+      subplotYStep = plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt))
+      plotSettingsCopy("subplot_y_min")(CStr(subPlotCnt)) = subplotYMin - subplotYMin Mod subplotYStep
+    End If
+    
+    If DS_Settings("plot_settings")("subplot_y_max")(CStr(subPlotCnt)) = "auto" Then
+      subplotYMin = plotSettingsCopy("subplot_y_min")(CStr(subPlotCnt))
+      subplotYMax = plotSettingsCopy("subplot_y_max")(CStr(subPlotCnt))
+      subplotYStep = plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt))
+      plotSettingsCopy("subplot_y_max")(CStr(subPlotCnt)) = subplotYMax - subplotYMax Mod subplotYStep + subplotYStep
+    End If
+    subPlotCnt = subPlotCnt + 1
+  Next heightShare
+  
   Call CM.CopyDict(plotSettingsCopy, DS_Settings("plot_settings"))
   
-  Debug.Print DS_Settings("plot_settings")("subplot_y_min")("1"), DS_Settings("plot_settings")("subplot_y_max")("1")
-  Debug.Print DS_Settings("plot_settings")("subplot_y_min")("2"), DS_Settings("plot_settings")("subplot_y_max")("2")
-
+'  Debug.Print DS_Settings("plot_settings")("subplot_y_min")("1"), DS_Settings("plot_settings")("subplot_y_max")("1")
+'  Debug.Print DS_Settings("plot_settings")("subplot_y_min")("2"), DS_Settings("plot_settings")("subplot_y_max")("2")
+'  Debug.Print DS_Settings("plot_settings")("subplot_y_step")("1")
+'  Debug.Print DS_Settings("plot_settings")("subplot_y_step")("2")
 End Sub
 
 Sub PlotChart(DS As DataSet, ByVal DS_Settings As Scripting.Dictionary, SheetName As String)
@@ -303,37 +332,5 @@ Sub PlotChart(DS As DataSet, ByVal DS_Settings As Scripting.Dictionary, SheetNam
   
   Call CreateAxes(DS_Settings("plot_settings"), DS.GetRowIndex(), SheetName)
   
-  
-  
-  
-  
-  
-  
-  
-'  AxesParams.Add "SheetName", "PM"
-'  AxesParams.Add "topXPosition", 100
-'  AxesParams.Add "topYposition", 20
-'  AxesParams.Add "chartWidth", 500
-'  AxesParams.Add "chartHeight", 300
-'  AxesParams.Add "Y_min", 63800
-'  AxesParams.Add "Y_max", 64200
-'  AxesParams.Add "X_min", 0
-'  AxesParams.Add "X_max", DS.rowsCount - 1
-'  AxesParams.Add "Y_ax_width", 40
-'  AxesParams.Add "X_ax_height", 40
-'  AxesParams.Add "PlotAreaMargin", 50
-  
-  
-  'Call CreateYAx(AxesParams, DS.GetRowIndex())
-'  Call CreateXAx(AxesParams, DS.GetRowIndex())
-'  Call CreateLineChart(AxesParams, DS.GetCol("<LAST_BASE>"), DS.GetRowIndex())
-'  Call CreateLineChart(AxesParams, DS.GetCol("<LAST_FIRST>"), DS.GetRowIndex())
-'  Call CreateLineChart(AxesParams, DS.GetCol("<LAST_SECOND>"), DS.GetRowIndex())
-  
-'  seriesColumns = Split(plotSettings("series_columns"), ",")
-'  For Each sCol In seriesColumns
-'
-'    Debug.Print sCol
-'  Next sCol
 
 End Sub
