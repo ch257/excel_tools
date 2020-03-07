@@ -21,43 +21,6 @@ Sub DeleteCharts()
   Next
 End Sub
 
-Sub CreateLineChart(AxesParams As Scripting.Dictionary, SeriaValues, SeriaXValues)
-  Dim objCht As ChartObject
-  Set objCht = Sheets(AxesParams("SheetName")).ChartObjects.Add( _
-    AxesParams("topXPosition"), _
-    AxesParams("topYposition"), _
-    AxesParams("chartWidth"), _
-    AxesParams("chartHeight") _
-  )
-  objCht.Chart.ChartType = xlLine
-  objCht.Chart.Axes(xlValue).MinimumScale = AxesParams("Y_min")
-  objCht.Chart.Axes(xlValue).MaximumScale = AxesParams("Y_max")
-  
-  objCht.Chart.Axes(xlCategory).Delete
-  objCht.Chart.Axes(xlValue).Delete
-  objCht.Chart.Axes(xlValue).MajorGridlines.Delete
-  
-  objCht.Chart.SeriesCollection.NewSeries
-  objCht.Chart.SeriesCollection(1).Values = SeriaValues
-  objCht.Chart.SeriesCollection(1).XValues = SeriaXValues
-  objCht.Chart.DisplayBlanksAs = xlInterpolated
-  
-  objCht.Chart.Legend.Delete
-  
-  Dim temp As Integer 'Office bug
-  temp = objCht.Chart.PlotArea.Width 'Office bug
-  
-  objCht.Chart.PlotArea.Width = AxesParams("chartWidth") - AxesParams("PlotAreaMargin") - 12
-  objCht.Chart.PlotArea.Height = AxesParams("chartHeight") - AxesParams("PlotAreaMargin")
-  objCht.Chart.PlotArea.Left = 21 + 6 '+4 from Office chart
-  objCht.Chart.PlotArea.Top = 21 '+4 from Office chart
-  
-  objCht.Chart.PlotArea.Format.Fill.Visible = msoFalse
-  Sheets(AxesParams("SheetName")).Shapes(Mid(objCht.Chart.Name, Len(AxesParams("SheetName")) + 2)).Fill.Visible = msoFalse
-  Sheets(AxesParams("SheetName")).Shapes(Mid(objCht.Chart.Name, Len(AxesParams("SheetName")) + 2)).line.Visible = msoFalse
-  Set objCht = Nothing
-End Sub
-
 Sub CreateXAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As String)
   Dim objCht As ChartObject
   Dim axes_height, axes_width As Integer
@@ -80,18 +43,18 @@ Sub CreateXAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As Strin
   objCht.Chart.Axes(xlValue).MinimumScale = 0
   objCht.Chart.Axes(xlValue).MaximumScale = 1
   
-  Dim SeriaValues() As Integer
+  Dim seriaValues() As Integer
   Dim itm As Variant
   Dim cnt As Long
-  ReDim SeriaValues(UBound(XIndex) - LBound(XIndex))
+  ReDim seriaValues(UBound(XIndex) - LBound(XIndex))
   cnt = 0
   For Each itm In XIndex
-    SeriaValues(cnt) = -1
+    seriaValues(cnt) = -1
     cnt = cnt + 1
   Next itm
   
   objCht.Chart.SeriesCollection.NewSeries
-  objCht.Chart.SeriesCollection(1).Values = SeriaValues
+  objCht.Chart.SeriesCollection(1).Values = seriaValues
   objCht.Chart.SeriesCollection(1).XValues = XIndex
   objCht.Chart.Legend.Delete
   
@@ -124,6 +87,131 @@ Sub CreateXAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As Strin
   End With
 End Sub
 
+Sub CreateSubplotLineChartLayer(plotSettings As Scripting.Dictionary, XIndex, SheetName As String, plotSettingsShift As Scripting.Dictionary)
+  Dim objCht As ChartObject
+  Dim subplot_axes_height, axes_width As Integer
+  Dim x_axis_height, y_axis_width As Integer
+  Dim axes_bind_position() As String
+  Dim subPlotNumber As String
+  
+  axes_width = plotSettings("axes_width")
+  subplot_axes_height = plotSettingsShift("subplot_axes_height")
+  subPlotNumber = plotSettingsShift("subplot_number")
+  'x_axis_height = plotSettings("x_axis_height")
+  y_axis_width = plotSettings("y_axis_width")
+  axes_bind_position = Split(plotSettings("axes_bind_position"), ",")
+  
+  Set objCht = Sheets(SheetName).ChartObjects.Add( _
+    CInt(axes_bind_position(0)), _
+    CInt(axes_bind_position(1)) + plotSettingsShift("axes_bind_position_y"), _
+    axes_width, _
+    subplot_axes_height _
+  )
+  objCht.Chart.ChartType = xlLine
+  objCht.Chart.DisplayBlanksAs = xlInterpolated
+  
+  Dim seriaValues() As Variant
+  Dim itm As Variant
+  Dim cnt As Long
+  ReDim seriaValues(UBound(XIndex) - LBound(XIndex))
+  cnt = 0
+  For Each itm In XIndex
+    seriaValues(cnt) = plotSettings("subplot_y_min")(subPlotNumber) - plotSettings("subplot_y_max")(subPlotNumber)
+    cnt = cnt + 1
+  Next itm
+  
+  objCht.Chart.SeriesCollection.NewSeries
+  objCht.Chart.SeriesCollection(1).Values = seriaValues
+  objCht.Chart.SeriesCollection(1).XValues = XIndex
+  objCht.Chart.Legend.Delete
+  
+  objCht.Chart.Axes(xlCategory).Delete
+  objCht.Chart.Axes(xlValue).Delete
+  objCht.Chart.Axes(xlValue).MajorGridlines.Delete
+  objCht.Chart.Axes(xlValue).MinimumScale = plotSettings("subplot_y_min")(subPlotNumber)
+  objCht.Chart.Axes(xlValue).MaximumScale = plotSettings("subplot_y_max")(subPlotNumber)
+  objCht.Chart.Axes(xlValue).MajorUnit = plotSettings("subplot_y_step")(subPlotNumber)
+  
+  objCht.Chart.PlotArea.Format.line.ForeColor.ObjectThemeColor = msoThemeColorText1
+  
+  Dim temp As Integer 'Office bug
+  temp = objCht.Chart.PlotArea.Width 'Office bug
+  
+  objCht.Chart.PlotArea.InsideWidth = axes_width - y_axis_width * 2
+  objCht.Chart.PlotArea.InsideHeight = subplot_axes_height - 17
+  objCht.Chart.PlotArea.InsideLeft = y_axis_width - 5
+  objCht.Chart.PlotArea.InsideTop = 5
+  
+  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Fill.Visible = msoFalse
+  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
+  objCht.Chart.PlotArea.Format.Fill.Visible = msoFalse
+  objCht.Chart.PlotArea.Format.line.Visible = msoFalse
+  
+  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Name = "Line" & subPlotNumber
+End Sub
+
+Sub CreateSubplotHistChartLayer(plotSettings As Scripting.Dictionary, XIndex, SheetName As String, plotSettingsShift As Scripting.Dictionary)
+  Dim objCht As ChartObject
+  Dim subplot_axes_height, axes_width As Integer
+  Dim x_axis_height, y_axis_width As Integer
+  Dim axes_bind_position() As String
+  Dim subPlotNumber As String
+  
+  axes_width = plotSettings("axes_width")
+  subplot_axes_height = plotSettingsShift("subplot_axes_height")
+  subPlotNumber = plotSettingsShift("subplot_number")
+  'x_axis_height = plotSettings("x_axis_height")
+  y_axis_width = plotSettings("y_axis_width")
+  axes_bind_position = Split(plotSettings("axes_bind_position"), ",")
+  
+  Set objCht = Sheets(SheetName).ChartObjects.Add( _
+    CInt(axes_bind_position(0)), _
+    CInt(axes_bind_position(1)) + plotSettingsShift("axes_bind_position_y"), _
+    axes_width, _
+    subplot_axes_height _
+  )
+  objCht.Chart.ChartType = xlColumnClustered
+  
+  Dim seriaValues() As Variant
+  Dim itm As Variant
+  Dim cnt As Long
+  ReDim seriaValues(UBound(XIndex) - LBound(XIndex))
+  cnt = 0
+  For Each itm In XIndex
+    seriaValues(cnt) = plotSettings("subplot_y_min")(subPlotNumber) - plotSettings("subplot_y_max")(subPlotNumber)
+    cnt = cnt + 1
+  Next itm
+  
+  objCht.Chart.SeriesCollection.NewSeries
+  objCht.Chart.SeriesCollection(1).Values = seriaValues
+  objCht.Chart.SeriesCollection(1).XValues = XIndex
+  objCht.Chart.Legend.Delete
+  
+  objCht.Chart.Axes(xlCategory).Delete
+  objCht.Chart.Axes(xlValue).Delete
+  objCht.Chart.Axes(xlValue).MajorGridlines.Delete
+  objCht.Chart.Axes(xlValue).MinimumScale = plotSettings("subplot_y_min")(subPlotNumber)
+  objCht.Chart.Axes(xlValue).MaximumScale = plotSettings("subplot_y_max")(subPlotNumber)
+  objCht.Chart.Axes(xlValue).MajorUnit = plotSettings("subplot_y_step")(subPlotNumber)
+  
+  objCht.Chart.PlotArea.Format.line.ForeColor.ObjectThemeColor = msoThemeColorText1
+  
+  Dim temp As Integer 'Office bug
+  temp = objCht.Chart.PlotArea.Width 'Office bug
+  
+  objCht.Chart.PlotArea.InsideWidth = axes_width - y_axis_width * 2
+  objCht.Chart.PlotArea.InsideHeight = subplot_axes_height - 17
+  objCht.Chart.PlotArea.InsideLeft = y_axis_width - 5
+  objCht.Chart.PlotArea.InsideTop = 5
+  
+  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Fill.Visible = msoFalse
+  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
+  objCht.Chart.PlotArea.Format.Fill.Visible = msoFalse
+  objCht.Chart.PlotArea.Format.line.Visible = msoFalse
+  
+  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Name = "Hist" & subPlotNumber
+End Sub
+
 Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As String, plotSettingsShift As Scripting.Dictionary)
   Dim objCht As ChartObject
   Dim subplot_axes_height, axes_width As Integer
@@ -146,18 +234,18 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName A
   )
   objCht.Chart.ChartType = xlLine
   
-  Dim SeriaValues() As Variant
+  Dim seriaValues() As Variant
   Dim itm As Variant
   Dim cnt As Long
-  ReDim SeriaValues(UBound(XIndex) - LBound(XIndex))
+  ReDim seriaValues(UBound(XIndex) - LBound(XIndex))
   cnt = 0
   For Each itm In XIndex
-    SeriaValues(cnt) = plotSettings("subplot_y_min")(subPlotNumber) - plotSettings("subplot_y_max")(subPlotNumber)
+    seriaValues(cnt) = plotSettings("subplot_y_min")(subPlotNumber) - plotSettings("subplot_y_max")(subPlotNumber)
     cnt = cnt + 1
   Next itm
   
   objCht.Chart.SeriesCollection.NewSeries
-  objCht.Chart.SeriesCollection(1).Values = SeriaValues
+  objCht.Chart.SeriesCollection(1).Values = seriaValues
   objCht.Chart.SeriesCollection(1).XValues = XIndex
   objCht.Chart.Legend.Delete
   
@@ -221,6 +309,9 @@ Sub CreateAxes(plotSettings As Scripting.Dictionary, XIndex, SheetName As String
       plotSettingsShift.Add "subplot_number", subPlotNumber
       
       Call CreateSubplotYAxis(plotSettings, XIndex, SheetName, plotSettingsShift)
+      Call CreateSubplotHistChartLayer(plotSettings, XIndex, SheetName, plotSettingsShift)
+      Call CreateSubplotLineChartLayer(plotSettings, XIndex, SheetName, plotSettingsShift)
+      
       axes_bind_position_y = axes_bind_position_y + subplot_axes_height
     Next heightShare
 End Sub
@@ -325,12 +416,68 @@ Sub SetPlotSettingsExtrem(DS As DataSet, DS_Settings As Scripting.Dictionary)
 '  Debug.Print DS_Settings("plot_settings")("subplot_y_step")("2")
 End Sub
 
-Sub PlotChart(DS As DataSet, ByVal DS_Settings As Scripting.Dictionary, SheetName As String)
+Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As String)
+  Dim objCht As ChartObject
+  Dim series_columns() As String
+  Dim seriaValues() As Variant
+  Dim col As Variant
+  Dim subPlotNumber As String
+  Dim seriaType As String
+  Dim seriaColor() As String
+  Dim seriaWeight As Double
+  Dim lineSeriesCnt, histSeriesCnt As Integer
+  
+  series_columns = Split(plotSettings("series_columns"), ",")
+  lineSeriesCnt = 1
+  histSeriesCnt = 1
+  For Each col In series_columns
+    subPlotNumber = plotSettings("series_subplot")(col)
+    seriaValues = DS.GetCol(col)
+    
+    seriaType = plotSettings("series_type")(col)
+    seriaWeight = CDbl(Replace(plotSettings("series_weight")(col), ".", Application.DecimalSeparator))
+    seriaColor = Split(plotSettings("series_color")(col), ",")
+    If seriaType = "line" Then
+      Set objCht = Sheets(SheetName).ChartObjects("Line" & subPlotNumber)
+      objCht.Chart.SeriesCollection.NewSeries
+      lineSeriesCnt = lineSeriesCnt + 1
+      objCht.Chart.SeriesCollection(lineSeriesCnt).Values = seriaValues
+      With objCht.Chart.SeriesCollection(lineSeriesCnt)
+        .Format.line.Visible = msoTrue
+        .Format.line.Weight = seriaWeight
+        .Format.line.ForeColor.RGB = RGB(seriaColor(0), seriaColor(1), seriaColor(2))
+      End With
+    End If
+    If seriaType = "hist" Then
+      Set objCht = Sheets(SheetName).ChartObjects("Hist" & subPlotNumber)
+      objCht.Chart.SeriesCollection.NewSeries
+      histSeriesCnt = histSeriesCnt + 1
+      objCht.Chart.SeriesCollection(histSeriesCnt).Values = seriaValues
+      With objCht.Chart.SeriesCollection(histSeriesCnt)
+        .Format.line.Visible = msoTrue
+        .Format.line.Weight = seriaWeight
+        .Format.Fill.ForeColor.RGB = RGB(seriaColor(0), seriaColor(1), seriaColor(2))
+      End With
+    End If
+  Next col
+End Sub
+
+Sub PlotChart(DS As DataSet, DS_Settings As Scripting.Dictionary, SheetName As String)
   
   Call DeleteCharts
   Call SetPlotSettingsExtrem(DS, DS_Settings)
-  
   Call CreateAxes(DS_Settings("plot_settings"), DS.GetRowIndex(), SheetName)
+  Call AddCharts(DS, DS_Settings("plot_settings"), SheetName)
   
-
+  ThisWorkbook.Worksheets(SheetName).Shapes.SelectAll
+  Selection.ShapeRange.Group
+  
+  Dim chtObj As ChartObject
+  Dim cnt As Integer
+  cnt = 1
+  For Each chtObj In ActiveSheet.ChartObjects
+    chtObj.Chart.Export "d:\Doc\Andrey\exhange\excel\tools\MyPic" & cnt & ".png"
+    cnt = cnt + 1
+  Next
+ 
 End Sub
