@@ -8,11 +8,18 @@ Attribute VB_Creatable = False
 Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
-'#If VBA7 Then
-'  Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As LongPtr) 'For 64 Bit Systems
-'#Else
-'  Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long) 'For 32 Bit Systems
-'#End If
+
+#If VBA7 Then
+  'For 64 Bit Systems
+  Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As LongPtr)
+  Private Declare PtrSafe Function GetSystemMetrics Lib "user32.dll" (ByVal nIndex As Long) As Long
+#Else
+  'For 32 Bit Systems
+  Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+  Private Declare Function GetSystemMetrics Lib "user32.dll" (ByVal nIndex As Long) As Long
+#End If
+Const SM_CXSCREEN = 0
+Const SM_CYSCREEN = 1
 
 Sub DeleteCharts()
   Dim chtObj As ChartObject
@@ -472,12 +479,22 @@ Sub PlotChart(DS As DataSet, DS_Settings As Scripting.Dictionary, SheetName As S
   ThisWorkbook.Worksheets(SheetName).Shapes.SelectAll
   Selection.ShapeRange.Group
   
-  Dim chtObj As ChartObject
-  Dim cnt As Integer
-  cnt = 1
-  For Each chtObj In ActiveSheet.ChartObjects
-    chtObj.Chart.Export "d:\Doc\Andrey\exhange\excel\tools\MyPic" & cnt & ".png"
-    cnt = cnt + 1
-  Next
+'  Dim chtObj As ChartObject
+'  Dim cnt As Integer
+'  cnt = 1
+'  For Each chtObj In ActiveSheet.ChartObjects
+'    chtObj.Chart.Export "d:\Doc\Andrey\exhange\excel\tools\MyPic" & cnt & ".png"
+'    cnt = cnt + 1
+'  Next
+ 
+ 
+  Dim x  As Long
+  Dim y  As Long
+  Dim MyMessage As String
+  Dim MyResponse As VbMsgBoxResult
+   
+  x = GetSystemMetrics(SM_CXSCREEN)
+  y = GetSystemMetrics(SM_CYSCREEN)
+
  
 End Sub
