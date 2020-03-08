@@ -18,6 +18,9 @@ Public Sub OpenFile(file_Path As String, mode As String)
   If mode = "w" Then
     Open file_Path For Output As #fileNum
     Exit Sub
+  ElseIf mode = "a" Then
+    Open file_Path For Append As #fileNum
+    Exit Sub
   Else
     Open file_Path For Input As #fileNum
     endOfFile = False
@@ -50,4 +53,27 @@ End Sub
 
  Sub CloseFile()
   Close #fileNum
+End Sub
+
+Sub CreateFolder(ByVal folderPath As String)
+  Dim FSO As Scripting.FileSystemObject
+  Dim folders() As String
+  Dim fld As Variant
+  Dim currTreeFolder As String
+  
+  Set FSO = CreateObject("Scripting.FileSystemObject")
+  folders = Split(folderPath, "\")
+  currTreeFolder = ""
+  For Each fld In folders
+    currTreeFolder = currTreeFolder & fld & "\"
+    If Not FSO.FolderExists(currTreeFolder) Then
+      MkDir currTreeFolder
+    End If
+  Next fld
+End Sub
+
+Sub ClearFolder(ByVal folderPath As String)
+  If Dir(folderPath) <> "" Then
+    Kill folderPath & "*.*"
+  End If
 End Sub

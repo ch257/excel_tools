@@ -111,6 +111,14 @@ Sub Run()
     Call zzCSV.ReadFromFile(zz_filePath, zz_ds_settings("3zz_ds"))
     
     Call ChPl.PlotChart(zzCSV, zz_ds_settings("3zz_ds"), "PM")
+    Dim exportFileFolder As String
+    Dim RW_File As New RWFile
+        
+    exportFileFolder = ThisWorkbook.Path & "\" & settings("output")("file_folder") & settings("output")("img_subfolder")
+    Call RW_File.CreateFolder(exportFileFolder)
+    Call RW_File.ClearFolder(exportFileFolder)
+    Call ChPl.ExportCharts("001", exportFileFolder)
+    
         
   End If
   

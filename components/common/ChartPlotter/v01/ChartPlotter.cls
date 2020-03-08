@@ -11,21 +11,26 @@ Option Explicit
 
 #If VBA7 Then
   'For 64 Bit Systems
-  Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As LongPtr)
-  Private Declare PtrSafe Function GetSystemMetrics Lib "user32.dll" (ByVal nIndex As Long) As Long
+'  Private Declare PtrSafe Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As LongPtr)
+'  Private Declare PtrSafe Function GetSystemMetrics Lib "user32.dll" (ByVal nIndex As Long) As Long
 #Else
   'For 32 Bit Systems
-  Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
-  Private Declare Function GetSystemMetrics Lib "user32.dll" (ByVal nIndex As Long) As Long
+'  Private Declare Sub Sleep Lib "kernel32" (ByVal dwMilliseconds As Long)
+'  Private Declare Function GetSystemMetrics Lib "user32.dll" (ByVal nIndex As Long) As Long
 #End If
-Const SM_CXSCREEN = 0
-Const SM_CYSCREEN = 1
+'Const SM_CXSCREEN = 0
+'Const SM_CYSCREEN = 1
 
-Sub DeleteCharts()
+Private exportYShift As New Scripting.Dictionary
+Private exportChartCnt As Integer
+
+Sub DeleteCharts(SheetName As String)
   Dim chtObj As ChartObject
-  For Each chtObj In ActiveSheet.ChartObjects
+  For Each chtObj In Sheets(SheetName).ChartObjects
     chtObj.Delete
   Next
+  Set exportYShift = Nothing
+  exportChartCnt = 1
 End Sub
 
 Sub CreateXAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As String)
@@ -39,6 +44,9 @@ Sub CreateXAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName As Strin
   x_axis_height = plotSettings("x_axis_height")
   y_axis_width = plotSettings("y_axis_width")
   axes_bind_position = Split(plotSettings("axes_bind_position"), ",")
+  
+  exportYShift.Add exportChartCnt, 0
+  exportChartCnt = exportChartCnt + 1
   
   Set objCht = Sheets(SheetName).ChartObjects.Add( _
     CInt(axes_bind_position(0)), _
@@ -108,6 +116,9 @@ Sub CreateSubplotLineChartLayer(plotSettings As Scripting.Dictionary, XIndex, Sh
   y_axis_width = plotSettings("y_axis_width")
   axes_bind_position = Split(plotSettings("axes_bind_position"), ",")
   
+  exportYShift.Add exportChartCnt, plotSettingsShift("axes_bind_position_y")
+  exportChartCnt = exportChartCnt + 1
+  
   Set objCht = Sheets(SheetName).ChartObjects.Add( _
     CInt(axes_bind_position(0)), _
     CInt(axes_bind_position(1)) + plotSettingsShift("axes_bind_position_y"), _
@@ -171,6 +182,9 @@ Sub CreateSubplotHistChartLayer(plotSettings As Scripting.Dictionary, XIndex, Sh
   y_axis_width = plotSettings("y_axis_width")
   axes_bind_position = Split(plotSettings("axes_bind_position"), ",")
   
+  exportYShift.Add exportChartCnt, plotSettingsShift("axes_bind_position_y")
+  exportChartCnt = exportChartCnt + 1
+  
   Set objCht = Sheets(SheetName).ChartObjects.Add( _
     CInt(axes_bind_position(0)), _
     CInt(axes_bind_position(1)) + plotSettingsShift("axes_bind_position_y"), _
@@ -232,6 +246,9 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName A
   'x_axis_height = plotSettings("x_axis_height")
   y_axis_width = plotSettings("y_axis_width")
   axes_bind_position = Split(plotSettings("axes_bind_position"), ",")
+  
+  exportYShift.Add exportChartCnt, plotSettingsShift("axes_bind_position_y")
+  exportChartCnt = exportChartCnt + 1
   
   Set objCht = Sheets(SheetName).ChartObjects.Add( _
     CInt(axes_bind_position(0)), _
@@ -471,30 +488,47 @@ End Sub
 
 Sub PlotChart(DS As DataSet, DS_Settings As Scripting.Dictionary, SheetName As String)
   
-  Call DeleteCharts
+  Call DeleteCharts(SheetName)
   Call SetPlotSettingsExtrem(DS, DS_Settings)
   Call CreateAxes(DS_Settings("plot_settings"), DS.GetRowIndex(), SheetName)
   Call AddCharts(DS, DS_Settings("plot_settings"), SheetName)
   
-  ThisWorkbook.Worksheets(SheetName).Shapes.SelectAll
-  Selection.ShapeRange.Group
-  
-'  Dim chtObj As ChartObject
-'  Dim cnt As Integer
-'  cnt = 1
-'  For Each chtObj In ActiveSheet.ChartObjects
-'    chtObj.Chart.Export "d:\Doc\Andrey\exhange\excel\tools\MyPic" & cnt & ".png"
-'    cnt = cnt + 1
-'  Next
- 
- 
-  Dim x  As Long
-  Dim y  As Long
-  Dim MyMessage As String
-  Dim MyResponse As VbMsgBoxResult
-   
-  x = GetSystemMetrics(SM_CXSCREEN)
-  y = GetSystemMetrics(SM_CYSCREEN)
+'  ThisWorkbook.Worksheets(SheetName).Shapes.SelectAll
+'  Selection.ShapeRange.Group
+End Sub
 
- 
+Sub ExportCharts(compositeFileName As String, exportFileFolder)
+  Dim RW_File As New RWFile
+  Dim chtObj As ChartObject
+  Dim chtCnt As Integer
+  Dim exportFileName, firstFileName As String
+  Dim exportFilePath As String
+  Dim chartYPosition As Integer
+  
+  Call RW_File.OpenFile(exportFileFolder & "composit.bat", "a")
+  RW_File.WriteLine ("@echo off")
+  
+  chtCnt = 1
+  For Each chtObj In ActiveSheet.ChartObjects
+    exportFileName = compositeFileName & "_" & Format(chtCnt, "000")
+    exportFilePath = exportFileFolder & exportFileName & ".png"
+    chtObj.Chart.Export exportFilePath
+    If chtCnt = 1 Then
+      firstFileName = exportFileName
+    ElseIf chtCnt = 2 Then
+      chartYPosition = Application.WorksheetFunction.RoundUp(exportYShift(chtCnt) / 72 * 120, 0)
+      Call RW_File.WriteLine("magick convert " & firstFileName & ".png " & exportFileName & ".png -geometry +0+" & chartYPosition & " -type TrueColor -composite " & compositeFileName & ".png")
+      Call RW_File.WriteLine("del " & firstFileName & ".png ")
+      Call RW_File.WriteLine("del " & exportFileName & ".png")
+    Else
+      chartYPosition = Application.WorksheetFunction.RoundUp(exportYShift(chtCnt) / 72 * 120, 0)
+      Call RW_File.WriteLine("magick convert " & compositeFileName & ".png " & exportFileName & ".png -geometry +0+" & chartYPosition & " -type TrueColor -composite " & compositeFileName & ".png")
+      Call RW_File.WriteLine("del " & exportFileName & ".png")
+    End If
+    chtCnt = chtCnt + 1
+  Next
+  
+  RW_File.WriteLine ("pause")
+  Call RW_File.CloseFile
+   
 End Sub
