@@ -516,13 +516,13 @@ Sub ExportCharts(compositeFileName As String, exportFileFolder)
     If chtCnt = 1 Then
       firstFileName = exportFileName
     ElseIf chtCnt = 2 Then
-      chartYPosition = Application.WorksheetFunction.RoundUp(exportYShift(chtCnt) / 72 * 120, 0)
-      Call RW_File.WriteLine("magick convert " & firstFileName & ".png " & exportFileName & ".png -geometry +0+" & chartYPosition & " -type TrueColor -composite " & compositeFileName & ".png")
+      chartYPosition = Application.WorksheetFunction.Round(exportYShift(chtCnt) / 72 * 120, 0)
+      Call RW_File.WriteLine("magick convert " & firstFileName & ".png " & exportFileName & ".png -geometry +1+" & chartYPosition & " -type TrueColor -composite " & compositeFileName & ".png")
       Call RW_File.WriteLine("del " & firstFileName & ".png ")
       Call RW_File.WriteLine("del " & exportFileName & ".png")
     Else
-      chartYPosition = Application.WorksheetFunction.RoundUp(exportYShift(chtCnt) / 72 * 120, 0)
-      Call RW_File.WriteLine("magick convert " & compositeFileName & ".png " & exportFileName & ".png -geometry +0+" & chartYPosition & " -type TrueColor -composite " & compositeFileName & ".png")
+      chartYPosition = Application.WorksheetFunction.Round(exportYShift(chtCnt) / 72 * 120, 0)
+      Call RW_File.WriteLine("magick convert " & compositeFileName & ".png " & exportFileName & ".png -geometry +1+" & chartYPosition & " -type TrueColor -composite " & compositeFileName & ".png")
       Call RW_File.WriteLine("del " & exportFileName & ".png")
     End If
     chtCnt = chtCnt + 1
