@@ -24,16 +24,18 @@ Sub Init()
   
   cmpCount = 0
   Set settings = New Scripting.Dictionary
+  
   For Each iniFile In iniFiles
     iniFiles(cmpCount) = thisWbFolder + iniFile
     Call RW_Ini.ReadSettings(iniFiles(cmpCount), settings)
-    
+    Call RW_Ini.ComposeSettings(settings)
+
     If My_Err.errOccured Then
       Exit Sub
     End If
     cmpCount = cmpCount + 1
   Next iniFile
-  Call RW_Ini.ComposeSettings(settings, settings)
+  'Call RW_Ini.PrintSettings(settings, "  ")
 End Sub
 
 Sub Run()
@@ -58,7 +60,7 @@ Sub Run()
 '    tick_filePath = thisWbFolder & settings("input")("file_folder") & settings("input")("tick_file_name")
 '    Call tickCSV.ReadFromFile(tick_filePath, settings("data_sets")("tick_ds"))
 '  End If
-'  If Not My_Err.errOccured Then
+  If Not My_Err.errOccured Then
 '    Call zzBase.Create(settings("data_sets")("zz_pack_ds"))
 '    Call zzFirst.Create(settings("data_sets")("zz_pack_ds"))
 '    Call zzSecond.Create(settings("data_sets")("zz_pack_ds"))
@@ -92,36 +94,34 @@ Sub Run()
 ''    thisWbFolder = ThisWorkbook.Path & "\"
 ''    iniFilePath = thisWbFolder & "settings\daily_snapshots\3zz_ds.ini"
 ''    Call RW_Ini.WriteSettings(iniFilePath, BaseFirstSecondJoned_Settings)
-'  End If
+  End If
   
   
   If Not My_Err.errOccured Then
-    Dim zz_filePath, zz_ds_settings_file, zz_ds_plot_settings_file As String
-    Dim zz_ds_settings As New Scripting.Dictionary
-    Dim RW_Ini As New RWini
-    Dim zzCSV As New DataSet
-    Dim ChPl As New ChartPlotter
-    
-    zz_filePath = thisWbFolder & "data\daily_snapshots\output\3zz.txt"
-    zz_ds_settings_file = thisWbFolder & "settings\daily_snapshots\3zz_ds.ini"
-    zz_ds_plot_settings_file = thisWbFolder & "settings\daily_snapshots\3zz_ds_plot.ini"
-    Call RW_Ini.ReadSettings(zz_ds_settings_file, zz_ds_settings)
-    Call RW_Ini.ReadSettings(zz_ds_plot_settings_file, zz_ds_settings)
-    Call RW_Ini.ComposeSettings(zz_ds_settings, zz_ds_settings)
-    Call zzCSV.ReadFromFile(zz_filePath, zz_ds_settings("3zz_ds"))
-    
-    Call ChPl.PlotChart(zzCSV, zz_ds_settings("3zz_ds"), "PM")
-    Dim exportFileFolder As String
-    Dim RW_File As New RWFile
-        
-    exportFileFolder = ThisWorkbook.Path & "\" & settings("output")("file_folder") & settings("output")("img_subfolder")
-    Call RW_File.CreateFolder(exportFileFolder)
-    Call RW_File.ClearFolder(exportFileFolder)
-    Call ChPl.ExportCharts("001", exportFileFolder)
-    
-        
+'    Dim zz_filePath, zz_ds_settings_file, zz_ds_plot_settings_file As String
+'    Dim zz_ds_settings As New Scripting.Dictionary
+'    Dim RW_Ini As New RWini
+'    Dim zzCSV As New DataSet
+'    Dim ChPl As New ChartPlotter
+'
+'    zz_filePath = thisWbFolder & "data\daily_snapshots\output\3zz.txt"
+'    zz_ds_settings_file = thisWbFolder & "settings\daily_snapshots\3zz_ds.ini"
+'    zz_ds_plot_settings_file = thisWbFolder & "settings\daily_snapshots\3zz_ds_plot.ini"
+'    Call RW_Ini.ReadSettings(zz_ds_settings_file, zz_ds_settings)
+'    Call RW_Ini.ReadSettings(zz_ds_plot_settings_file, zz_ds_settings)
+'    Call RW_Ini.ComposeSettings(zz_ds_settings, zz_ds_settings)
+'    Call zzCSV.ReadFromFile(zz_filePath, zz_ds_settings("3zz_ds"))
+'
+'    Call ChPl.PlotChart(zzCSV, zz_ds_settings("3zz_ds"), "PM")
+'    Dim exportFileFolder As String
+'    Dim RW_File As New RWFile
+'
+'    exportFileFolder = ThisWorkbook.Path & "\" & settings("output")("file_folder") & settings("output")("img_subfolder")
+'    Call RW_File.CreateFolder(exportFileFolder)
+'    Call RW_File.ClearFolder(exportFileFolder)
+'    Call ChPl.ExportCharts("001", exportFileFolder)
   End If
-  
+
   If My_Err.errOccured Then
     Debug.Print My_Err.errMessage
     Exit Sub

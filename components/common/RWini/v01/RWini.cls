@@ -42,6 +42,7 @@ Sub ReadSettings(ByVal filePath As String, settings As Scripting.Dictionary)
   Dim lineParts() As String
   Dim mem_section As String
   Dim emptyDict As New Scripting.Dictionary
+  Dim k As Variant
   
   Call RW_File.OpenFile(filePath, "r")
   If My_Err.errOccured Then
@@ -52,7 +53,6 @@ Sub ReadSettings(ByVal filePath As String, settings As Scripting.Dictionary)
     line = RW_File.ReadLine
     If line <> "" Then
       lineParts = ParseLine(line)
-      
       If lineParts(0) <> "" Then
         If settings.Exists(lineParts(0)) Then
           mem_section = lineParts(0)
@@ -70,64 +70,114 @@ Sub ReadSettings(ByVal filePath As String, settings As Scripting.Dictionary)
   Wend
   
   Call RW_File.CloseFile
-  
 End Sub
 
-Sub ComposeSettings(settings As Scripting.Dictionary, settingsLnk As Scripting.Dictionary)
+Private Sub LinkSubSettings(ByRef settings As Scripting.Dictionary, ByRef settingsLnk As Scripting.Dictionary, toDelete As String)
   Dim k As Variant
-  'Dim emptyDict As New Scripting.Dictionary
   
   For Each k In settings.keys
     If TypeName(settings(k)) = "Dictionary" Then
-      Call ComposeSettings(settings(k), settingsLnk)
+      Call LinkSubSettings(settings(k), settingsLnk, toDelete)
     Else
       If settingsLnk.Exists(settings(k)) Then
+        toDelete = toDelete & settings(k) & ","
         Set settings(k) = settingsLnk(settings(k))
+        Call LinkSubSettings(settings(k), settingsLnk, toDelete)
       End If
-    End If
-  Next
-End Sub
-
-Sub DecomposeSettings(settings As Scripting.Dictionary, line As String)
-  Dim k As Variant
-  
-  For Each k In settings
-    If TypeName(settings(k)) = "Dictionary" Then
-      line = line & vbTab & k & " = " & "3zz_ds_" & k & vbCrLf
-      Call DecomposeSettings(settings(k), line)
-    Else
-      line = line & vbTab & k & " = " & settings(k) & vbCrLf
     End If
   Next k
 End Sub
 
-Sub WriteSettings(filePath As String, settings As Scripting.Dictionary)
-  Dim RW_File As New RWFile
-  Dim line As String
+Sub ComposeSettings(ByRef settings As Scripting.Dictionary)
+  Dim k As Variant
+  Dim toDelete As String
   
+  toDelete = ""
+  Call LinkSubSettings(settings, settings, toDelete)
+  
+  If Len(toDelete) > 0 Then
+    For Each k In Split(Mid(toDelete, 1, Len(toDelete) - 1), ",")
+      settings.Remove k
+    Next k
+  End If
+End Sub
+  
+Private Sub UnlinkSubSettings(ParentK As String, settings As Scripting.Dictionary, settingsLnk As Scripting.Dictionary)
+  Dim k As Variant
+  
+  For Each k In settings
+    If TypeName(settings(k)) = "Dictionary" Then
+      Call UnlinkSubSettings(CStr(k), settings(k), settingsLnk)
+      If ParentK <> "" Then
+        settingsLnk.Add ParentK & "_" & k, settings(k)
+        settings.Remove k
+        settings.Add k, ParentK & "_" & k
+      End If
+    Else
+    End If
+  Next k
+End Sub
+
+Sub DecomposeSettings(settings As Scripting.Dictionary)
+  Dim k As Variant
+  Call UnlinkSubSettings("", settings, settings)
+End Sub
+
+Sub WriteSettings(settings As Scripting.Dictionary, filePath As String)
+  Dim RW_File As New RWFile
+  Dim str As String
+  Dim k, k1 As Variant
+  
+  Call DecomposeSettings(settings)
+  
+  str = ""
+  For Each k In settings
+    If TypeName(settings(k)) = "Dictionary" Then
+      str = str & "[" & k & "]" & vbCrLf
+      For Each k1 In settings(k)
+        str = str & vbTab & k1 & " = " & settings(k)(k1) & vbCrLf
+      Next k1
+      str = str & vbCrLf
+    End If
+  Next k
   
   Call RW_File.OpenFile(filePath, "w")
   If My_Err.errOccured Then
     Exit Sub
   End If
   
-  line = "[3zz_ds]" & vbCrLf
-  line2
-  Call DecomposeSettings(settings, line)
-  Debug.Print line
-  
-'  line = "[" & "3zz_ds" & "]"
-'  For Each sec In settings
-'    If TypeName(sec) = "Dictionary" Then
-'
-'    Else
-'      line = "[" & sec & "]"
-'    End If
-'    RW_File.WriteLine line
-'  Next sec
-  
-  
-  
+  Call RW_File.WriteLine(str)
   Call RW_File.CloseFile
+End Sub
+
+Sub PrintSettings(settings As Scripting.Dictionary, offset As String)
+  Dim str As String
+  Call SettingsToJSON(settings, offset, offset, str)
+  Debug.Print "{" & vbCrLf & str & "}" & vbCrLf
+End Sub
+
+Private Function JSONEscape(str As String) As String
+  JSONEscape = Replace(str, "\", "\\")
+End Function
+
+Private Sub SettingsToJSON(settings As Scripting.Dictionary, offset As String, ByVal offset_m As String, str As String)
+  Dim k As Variant
+  For Each k In settings
+    If TypeName(settings(k)) = "Dictionary" Then
+      str = str & offset & """" & k & """" & ": {" & vbCrLf
+      offset = offset & offset_m
+      Call SettingsToJSON(settings(k), offset, offset_m, str)
+      offset = Mid(offset, 1, Len(offset) - Len(offset_m))
+      If str <> "" Then
+        str = Mid(str, 1, Len(str) - 3) & vbCrLf
+      End If
+      str = str & offset & "}," & vbCrLf
+    Else
+      str = str & offset & """" & k & """" & ": " & """" & JSONEscape(settings(k)) & """" & "," & vbCrLf
+    End If
+  Next k
   
+  If offset = offset_m Then
+    str = Mid(str, 1, Len(str) - 3) & vbCrLf
+  End If
 End Sub
