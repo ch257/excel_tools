@@ -6,6 +6,7 @@ data_store/
 
 !projects/
 projects/*
+
 !projects/daily_snapshots/
 projects/daily_snapshots/*
 !projects/daily_snapshots/*.xlsm
@@ -16,8 +17,6 @@ projects/daily_snapshots/data/*
 projects/daily_snapshots/settings/*
 !projects/daily_snapshots/settings/*.ini
 
-!projects/
-projects/*
 !projects/prepare_data/
 projects/prepare_data/*
 !projects/prepare_data/*.xlsm
