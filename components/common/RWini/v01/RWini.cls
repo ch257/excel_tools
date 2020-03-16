@@ -156,8 +156,8 @@ Sub PrintSettings(settings As Scripting.Dictionary, offset As String)
   Debug.Print "{" & vbCrLf & str & "}" & vbCrLf
 End Sub
 
-Private Function JSONEscape(str As String) As String
-  JSONEscape = Replace(str, "\", "\\")
+Private Function EscapeJSON(str As String) As String
+  EscapeJSON = Replace(str, "\", "\\")
 End Function
 
 Private Sub SettingsToJSON(settings As Scripting.Dictionary, offset As String, ByVal offset_m As String, str As String)
@@ -173,7 +173,7 @@ Private Sub SettingsToJSON(settings As Scripting.Dictionary, offset As String, B
       End If
       str = str & offset & "}," & vbCrLf
     Else
-      str = str & offset & """" & k & """" & ": " & """" & JSONEscape(settings(k)) & """" & "," & vbCrLf
+      str = str & offset & """" & k & """" & ": " & """" & EscapeJSON(settings(k)) & """" & "," & vbCrLf
     End If
   Next k
   
@@ -181,3 +181,14 @@ Private Sub SettingsToJSON(settings As Scripting.Dictionary, offset As String, B
     str = Mid(str, 1, Len(str) - 3) & vbCrLf
   End If
 End Sub
+
+Function GetValue(ByVal dict As Scripting.Dictionary, ByVal key As String) As String
+  If dict.Exists(key) Then
+    GetValue = dict(key)
+  ElseIf dict.Exists("default") Then
+    GetValue = dict("default")
+  Else
+    GetValue = ""
+  End If
+End Function
+    

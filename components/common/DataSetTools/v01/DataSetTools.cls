@@ -9,18 +9,6 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-'Function inArray(checkArray() As String, ByVal checkValue As String) As Boolean
-'    Dim arrVal As Variant
-'    inArray = False
-'
-'    For Each arrVal In checkArray
-'      If arrVal = checkValue Then
-'        inArray = True
-'        Exit For
-'      End If
-'    Next arrVal
-'End Function
-
 Sub InsertSettings(fromDict As Scripting.Dictionary, JoinRules As Scripting.Dictionary, columns As Scripting.Dictionary, toDict As Scripting.Dictionary)
     Dim k, destK, jrK As Variant
     Dim emptyDict As New Scripting.Dictionary

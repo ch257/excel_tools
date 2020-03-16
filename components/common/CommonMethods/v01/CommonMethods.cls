@@ -29,6 +29,18 @@ Sub CopyDict(ByRef fromDict As Scripting.Dictionary, ByRef toDict As Scripting.D
     Next
 End Sub
 
+Function InStringArray(checkArray() As String, ByVal checkValue As String) As Boolean
+    Dim arrVal As Variant
+    InStringArray = False
+
+    For Each arrVal In checkArray
+      If arrVal = checkValue Then
+        InStringArray = True
+        Exit For
+      End If
+    Next arrVal
+End Function
+
 Sub SplitStrToCollection(line As String, delimeter As String, coll As Collection)
     Dim arr() As String
     Dim itm As Variant

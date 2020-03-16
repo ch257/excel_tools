@@ -77,3 +77,30 @@ Sub ClearFolder(ByVal folderPath As String)
     Kill folderPath & "*.*"
   End If
 End Sub
+
+Function GetFolderFileList(folderPath As String) As String()
+  Dim oFSO As Object
+  Dim oFolder As Object
+  Dim oFile As Object
+  Dim fileName As String
+  Dim fileNumber, fileCnt As Integer
+  Dim fileList() As String
+   
+  Set oFSO = CreateObject("Scripting.FileSystemObject")
+  Set oFolder = oFSO.GetFolder(folderPath)
+  
+  fileNumber = oFolder.Files.Count
+  If fileNumber > 0 Then
+    ReDim fileList(fileNumber)
+    fileCnt = 1
+    For Each oFile In oFolder.Files
+      fileName = oFile.Name
+      fileList(fileCnt) = fileName
+      fileCnt = fileCnt + 1
+    Next oFile
+  Else
+    ReDim fileList(0)
+  End If
+  
+  GetFolderFileList = fileList
+End Function
