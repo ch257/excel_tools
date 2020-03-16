@@ -15,11 +15,11 @@ Sub Init()
   
   thisWbFolder = ThisWorkbook.Path & "\"
   iniFilesString = ""
-  iniFilesString = iniFilesString & "settings\daily_snapshots\main.ini"
-  iniFilesString = iniFilesString & "," & "settings\daily_snapshots\zz_pack_ds.ini"
-  iniFilesString = iniFilesString & "," & "settings\daily_snapshots\tick_ds.ini"
-  iniFilesString = iniFilesString & "," & "settings\daily_snapshots\base_first_join_rules.ini"
-  iniFilesString = iniFilesString & "," & "settings\daily_snapshots\base_first_second_join_rules.ini"
+  iniFilesString = iniFilesString & "settings\main.ini"
+  iniFilesString = iniFilesString & "," & "settings\zz_pack_ds.ini"
+  iniFilesString = iniFilesString & "," & "settings\tick_ds.ini"
+  iniFilesString = iniFilesString & "," & "settings\base_first_join_rules.ini"
+  iniFilesString = iniFilesString & "," & "settings\base_first_second_join_rules.ini"
   iniFiles = Split(iniFilesString, ",")
   
   cmpCount = 0
@@ -121,10 +121,94 @@ Sub Run()
 '    Call RW_File.ClearFolder(exportFileFolder)
 '    Call ChPl.ExportCharts("001", exportFileFolder)
   End If
-
+  
+  If Not My_Err.errOccured Then
+'    Dim RW_File As New RWFile
+'    Dim CM As New CommonMethods
+'
+'    Dim fileName As Variant
+'    Dim notInDstFileCnt, fileCnt As Integer
+'    Dim srcFileList() As String
+'    Dim dstFileList() As String
+'    Dim notInDstFileList() As String
+'
+'    srcFileList = RW_File.GetFolderFileList(thisWbFolder & "bkp\test\f1\")
+'    dstFileList = RW_File.GetFolderFileList(thisWbFolder & "bkp\test\f2\")
+'
+'    ReDim notInDstFileList(UBound(srcFileList) - LBound(srcFileList))
+'    notInDstFileCnt = 1
+'    For fileCnt = 1 To UBound(srcFileList) - LBound(srcFileList)
+'      fileName = srcFileList(fileCnt)
+'      If Not CM.InStringArray(dstFileList, fileName) Then
+'        notInDstFileList(notInDstFileCnt) = fileName
+'        notInDstFileCnt = notInDstFileCnt + 1
+'      End If
+'    Next fileCnt
+'    ReDim Preserve notInDstFileList(notInDstFileCnt - 1)
+'
+'    For fileCnt = 1 To UBound(notInDstFileList) - LBound(notInDstFileList)
+'      Debug.Print "== ", notInDstFileList(fileCnt)
+'    Next fileCnt
+    
+  End If
+  
+  If Not My_Err.errOccured Then
+    Dim dataStorePath As String
+    Dim takeFromStr As String
+    Dim takeFrom() As String
+    
+    dataStorePath = thisWbFolder & "..\..\data_store\"
+    takeFromStr = ""
+    takeFromStr = takeFromStr & "" & ";" ' Year
+    takeFromStr = takeFromStr & "Si,Eu" & ";" ' Ticker
+    takeFromStr = takeFromStr & "" & ";" ' Contract
+    takeFromStr = takeFromStr & "0" & ";" ' TimeFrame
+    takeFrom = Split(takeFromStr, ";")
+    
+    Call test(dataStorePath, 0, takeFrom)
+    
+    
+    
+    
+    
+  
+  End If
+  
   If My_Err.errOccured Then
     Debug.Print My_Err.errMessage
     Exit Sub
   End If
   Debug.Print "OK!"
+End Sub
+
+
+Sub test(dataStorePath As String, layer As Integer, takeFrom() As String)
+  Dim oFSO As Object
+  Dim oFolder As Object
+  Dim oFile As Object
+  Dim fsObj As Object
+  Dim fileNumber, subFolderNumber As Long
+  Dim subFolderName, fileName As Variant
+  Dim allowFolderList As String
+  
+  Set oFSO = CreateObject("Scripting.FileSystemObject")
+  Set oFolder = oFSO.GetFolder(dataStorePath)
+  
+  fileNumber = oFolder.Files.Count
+  subFolderNumber = oFolder.SubFolders.Count
+  
+  
+  If fileNumber > 0 Then
+    For Each fsObj In oFolder.Files
+      Debug.Print layer, dataStorePath & fsObj.Name
+    Next fsObj
+  End If
+  If subFolderNumber > 0 Then
+    allowFolderList = takeFrom(layer)
+    For Each fsObj In oFolder.SubFolders
+      If allowFolderList = "" Or InStr(allowFolderList, fsObj.Name) > 0 Then
+        Call test(dataStorePath & fsObj.Name & "\", layer + 1, takeFrom)
+      End If
+    Next fsObj
+  End If
 End Sub
