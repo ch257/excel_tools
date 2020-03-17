@@ -104,3 +104,58 @@ Function GetFolderFileList(folderPath As String) As String()
   
   GetFolderFileList = fileList
 End Function
+
+Private Sub CompleteDataStoreFileList(dataStorePath As String, layer As Integer, takeFrom() As String, fileList As String)
+  Dim oFSO As Object
+  Dim oFolder As Object
+  Dim oFile As Object
+  Dim fsObj As Object
+  Dim fileNumber, subFolderNumber As Long
+  Dim subFolderName, fileName As Variant
+  Dim allowFolderList As String
+  
+  Set oFSO = CreateObject("Scripting.FileSystemObject")
+  Set oFolder = oFSO.GetFolder(dataStorePath)
+  
+  fileNumber = oFolder.Files.Count
+  subFolderNumber = oFolder.SubFolders.Count
+  
+  If fileNumber > 0 Then
+    For Each fsObj In oFolder.Files
+      fileList = fileList & ";" & dataStorePath & fsObj.Name
+    Next fsObj
+  End If
+  If subFolderNumber > 0 Then
+    allowFolderList = takeFrom(layer)
+    For Each fsObj In oFolder.SubFolders
+      If allowFolderList = "" Or InStr(allowFolderList, fsObj.Name) > 0 Then
+        Call CompleteDataStoreFileList(dataStorePath & fsObj.Name & "\", layer + 1, takeFrom, fileList)
+      End If
+    Next fsObj
+  End If
+End Sub
+
+Function GetDataStoreFileList(dataStorePath As String, getLine As String) As String()
+  Dim takeFrom() As String
+  Dim fileList As String
+  
+  takeFrom = Split(getLine, ":")
+  fileList = ""
+  Call CompleteDataStoreFileList(dataStorePath, 0, takeFrom, fileList)
+  
+  GetDataStoreFileList = Split(fileList, ";")
+End Function
+
+Function GetFileName(ByVal filePath As String)
+  Dim sepPos As Long
+  
+  sepPos = InStr(filePath, "\")
+  While sepPos > 0
+    filePath = Mid(filePath, sepPos + 1)
+    sepPos = InStr(filePath, "\")
+  Wend
+  GetFileName = filePath
+End Function
+
+
+

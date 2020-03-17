@@ -40,7 +40,8 @@ Sub Create(ByVal dsSettings As Scripting.Dictionary)
   ReDim emptyArr(dataLength - 1)
   For rowCount = 0 To dataLength - 1
     rowIndex(rowCount) = rowCount
-    emptyArr(rowCount) = Null
+    'emptyArr(rowCount) = Null
+    emptyArr(rowCount) = Empty
   Next rowCount
   For Each colName In colIndex
     table(colIndex(colName)) = emptyArr
@@ -56,7 +57,8 @@ End Sub
 '
 '  ReDim emptyArr(dataLength - 1)
 '  For rowCount = 0 To dataLength - 1
-'    emptyArr(rowCount) = Null
+'    'emptyArr(rowCount) = Null
+'    emptyArr(rowCount) = Empty
 '  Next rowCount
 '  For Each colName In colIndex
 '    table(colIndex(colName)) = emptyArr
@@ -71,7 +73,7 @@ Sub ReadFromFile(ByVal filePath As String, ByVal dsSettings As Scripting.Diction
   Dim lineParts() As String
   Dim colName As Variant
   Dim Type_Convertor As New TypeConvertor
-  Dim Settings_Reader As New SettingsReader
+  Dim RW_ini As New RWini
   Dim rowCount, colCount As Long
   Dim colType As String
 
@@ -91,7 +93,7 @@ Sub ReadFromFile(ByVal filePath As String, ByVal dsSettings As Scripting.Diction
       For Each colName In colIndex
         colCount = colIndex(colName)
         'colType = dsSettings("column_type")(colName)
-          colType = Settings_Reader.GetValue(dsSettings("column_type"), CStr(colName))
+          colType = RW_ini.GetValue(dsSettings("column_type"), CStr(colName))
         table(colCount)(rowCount) = Type_Convertor.Cast(lineParts(colCount), colType, dsSettings("decimal"))
       Next colName
       rowCount = rowCount + 1
@@ -110,7 +112,7 @@ Sub WriteToFile(ByVal filePath As String, ByVal dsSettings As Scripting.Dictiona
   Dim lineParts() As String
   Dim colName As Variant
   Dim Type_Convertor As New TypeConvertor
-  Dim Settings_Reader As New SettingsReader
+  Dim RW_ini As New RWini
   Dim rowCount, colCount As Long
   Dim colFormat As String
   
@@ -132,7 +134,7 @@ Sub WriteToFile(ByVal filePath As String, ByVal dsSettings As Scripting.Dictiona
     line = ""
     For Each colName In colNames
       colCount = colIndex(colName)
-      colFormat = Settings_Reader.GetValue(dsSettings("column_format"), CStr(colName))
+      colFormat = RW_ini.GetValue(dsSettings("column_format"), CStr(colName))
       line = line & dsSettings("column_separator") & Type_Convertor.FormatV(table(colCount)(rowCount), colFormat, dsSettings("decimal"))
     Next colName
     line = Mid(line, 2)
@@ -157,7 +159,8 @@ Public Sub CreateRow(col_Names() As String)
   Dim colName As Variant
   Set row = New Scripting.Dictionary
   For Each colName In col_Names
-    row.Add colName, Null
+    'row.Add colName, Null
+    row.Add colName, Empty
   Next colName
 End Sub
 
