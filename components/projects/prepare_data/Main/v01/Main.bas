@@ -3,21 +3,18 @@ Option Explicit
 Public My_Err As New Errors
 Dim settings As Scripting.Dictionary
 
-Sub Init()
+Private Sub Init(iniFilesString As String)
   Dim thisWbFolder As String
   Dim cmpCount As Long
   Dim iniFile As Variant
   Dim iniFiles() As String
-  Dim iniFilesString As String
   Dim RW_ini As New RWini
   
   Set My_Err = New Errors
+  Set settings = New Scripting.Dictionary
   
   thisWbFolder = ThisWorkbook.Path & "\"
-  iniFilesString = ""
-  iniFilesString = iniFilesString & "settings\main.ini"
-  iniFilesString = iniFilesString & "," & "settings\zz_pack_ds.ini"
-  iniFilesString = iniFilesString & "," & "settings\tick_ds.ini"
+  
   iniFiles = Split(iniFilesString, ",")
   
   cmpCount = 0
@@ -33,9 +30,10 @@ Sub Init()
     End If
     cmpCount = cmpCount + 1
   Next iniFile
+  'Call RW_ini.PrintSettings(settings, "  ")
 End Sub
 
-Sub Run()
+Private Sub PrepareForDailySnapshots()
   Dim thisWbFolder As String
   Dim tickCSV As New DataSet
   Dim zzBase As New DataSet
@@ -50,17 +48,32 @@ Sub Run()
   Dim getLine As String
   Dim cnt As Long
   Dim fileName As String
+  Dim zzPackMinMovings() As String
+  Dim zzPackMinMoving As Variant
+  Dim iniFilesString As String
   
   thisWbFolder = ThisWorkbook.Path & "\"
   
-  Call Init
-  If Not My_Err.errOccured Then
-    'Call RW_Ini.PrintSettings(settings, "  ")
-    inputFileFolder = thisWbFolder & settings("input")("file_folder")
-    outputFileFolder = thisWbFolder & settings("output")("file_folder")
+  iniFilesString = ""
+  iniFilesString = iniFilesString & "settings\daily_snapshots_main.ini"
+  iniFilesString = iniFilesString & "," & "settings\zz_pack_ds.ini"
+  iniFilesString = iniFilesString & "," & "settings\tick_ds.ini"
+  
+  Call Init(iniFilesString)
+  If My_Err.errOccured Then
+    Exit Sub
+  End If
+  
+  inputFileFolder = thisWbFolder & settings("input")("file_folder")
+  outputFileFolder = thisWbFolder & settings("output")("file_folder")
+  getLine = settings("input")("get_line")
+  tickFileList = RW_File.GetDataStoreFileList(inputFileFolder, getLine)
+  
+  zzPackMinMovings = Split(settings("parameters")("zz_pack_min_movings"), ",")
+  For Each zzPackMinMoving In zzPackMinMovings
+    
+    outputFileFolder = outputFileFolder & zzPackMinMoving
     Call RW_File.CreateFolder(outputFileFolder)
-    getLine = settings("input")("get_line")
-    tickFileList = RW_File.GetDataStoreFileList(inputFileFolder, getLine)
     preparedFileList = RW_File.GetFolderFileList(outputFileFolder)
     
     For cnt = 1 To UBound(tickFileList) - LBound(tickFileList)
@@ -69,12 +82,21 @@ Sub Run()
         Debug.Print fileName
         Call tickCSV.ReadFromFile(tickFileList(cnt), settings("data_sets")("tick_ds"))
         Call zzBase.Create(settings("data_sets")("zz_pack_ds"))
-        Call Ex_Meth.TicksToZZ(tickCSV, 10, zzBase)
-        zzBase_filePath = outputFileFolder & fileName
+        Call Ex_Meth.TicksToZZ(tickCSV, CInt(zzPackMinMoving), zzBase)
+        zzBase_filePath = outputFileFolder & "\" & fileName
         Call zzBase.WriteToFile(zzBase_filePath, settings("data_sets")("zz_pack_ds"))
+        If My_Err.errOccured Then
+          Exit Sub
+        End If
       End If
     Next cnt
-  End If
+    
+    outputFileFolder = Mid(outputFileFolder, 1, Len(outputFileFolder) - Len(zzPackMinMoving))
+  Next zzPackMinMoving
+End Sub
+
+Sub Run()
+  Call PrepareForDailySnapshots
   
   If My_Err.errOccured Then
     Debug.Print My_Err.errMessage

@@ -35,38 +35,45 @@ Sub Init()
     End If
     cmpCount = cmpCount + 1
   Next iniFile
-  'Call RW_Ini.PrintSettings(settings, "  ")
+  Call RW_Ini.PrintSettings(settings, "  ")
 End Sub
 
 Sub Run()
   Dim thisWbFolder As String
-  Dim tickCSV As New DataSet
+  Dim zzTick As New DataSet
+  Dim zzTick_filePath As String
   Dim zzBase As New DataSet
   Dim zzFirst As New DataSet
   Dim zzSecond As New DataSet
-  Dim BaseFirstJoned As New DataSet
-  Dim BaseFirstJoned_Settings As New Scripting.Dictionary
-  Dim BaseFirstSecondJoned As New DataSet
-  Dim BaseFirstSecondJoned_Settings As New Scripting.Dictionary
+'  Dim BaseFirstJoned As New DataSet
+'  Dim BaseFirstJoned_Settings As New Scripting.Dictionary
+'  Dim BaseFirstSecondJoned As New DataSet
+'  Dim BaseFirstSecondJoned_Settings As New Scripting.Dictionary
   Dim Ex_Meth As New ExchangeMethods
-  Dim DS_Tools As New DataSetTools
-  Dim tick_filePath, zzBase_filePath, zzFirst_filePath, zzSecond_filePath, joinedDS_filePath As String
+  Dim zzBase_MinMoving, zzFirst_MinMoving, zzSecond_MinMoving As Integer
+'  Dim DS_Tools As New DataSetTools
+  
+  'zzBase_filePath, zzFirst_filePath, zzSecond_filePath, joinedDS_filePath As String
   
   
   thisWbFolder = ThisWorkbook.Path & "\"
-  
+    
   Call Init
-'  If Not My_Err.errOccured Then
-'    tick_filePath = thisWbFolder & settings("input")("file_folder") & settings("input")("tick_file_name")
-'    Call tickCSV.ReadFromFile(tick_filePath, settings("data_sets")("tick_ds"))
-'  End If
   If Not My_Err.errOccured Then
-'    Call zzBase.Create(settings("data_sets")("zz_pack_ds"))
-'    Call zzFirst.Create(settings("data_sets")("zz_pack_ds"))
-'    Call zzSecond.Create(settings("data_sets")("zz_pack_ds"))
-'    Call Ex_Meth.TicksToZZ(tickCSV, 10, zzBase)
-'    Call Ex_Meth.ZZToZZ(zzBase, 50, zzFirst)
-'    Call Ex_Meth.ZZToZZ(zzBase, 100, zzSecond)
+    zzTick_filePath = thisWbFolder & settings("input")("file_folder") & settings("input")("zz_tick_file_name")
+    zzBase_MinMoving = settings("parameters")("zz_base_min_moving")
+    zzFirst_MinMoving = settings("parameters")("zz_frst_min_moving")
+    zzSecond_MinMoving = settings("parameters")("zz_second_min_moving")
+  
+    Call zzTick.ReadFromFile(zzTick_filePath, settings("data_sets")("zz_pack_ds"))
+  End If
+  If Not My_Err.errOccured Then
+    Call zzBase.Create(settings("data_sets")("zz_pack_ds"))
+    Call zzFirst.Create(settings("data_sets")("zz_pack_ds"))
+    Call zzSecond.Create(settings("data_sets")("zz_pack_ds"))
+    Call Ex_Meth.ZZToZZ(zzTick, CInt(zzBase_MinMoving), zzBase)
+    Call Ex_Meth.ZZToZZ(zzBase, CInt(zzFirst_MinMoving), zzFirst)
+    Call Ex_Meth.ZZToZZ(zzBase, CInt(zzSecond_MinMoving), zzSecond)
 '
 '    Call DS_Tools.FullJoin( _
 '      zzBase, settings("data_sets")("zz_pack_ds"), _
@@ -122,57 +129,6 @@ Sub Run()
 '    Call ChPl.ExportCharts("001", exportFileFolder)
   End If
   
-  If Not My_Err.errOccured Then
-'    Dim RW_File As New RWFile
-'    Dim CM As New CommonMethods
-'
-'    Dim fileName As Variant
-'    Dim notInDstFileCnt, fileCnt As Integer
-'    Dim srcFileList() As String
-'    Dim dstFileList() As String
-'    Dim notInDstFileList() As String
-'
-'    srcFileList = RW_File.GetFolderFileList(thisWbFolder & "bkp\test\f1\")
-'    dstFileList = RW_File.GetFolderFileList(thisWbFolder & "bkp\test\f2\")
-'
-'    ReDim notInDstFileList(UBound(srcFileList) - LBound(srcFileList))
-'    notInDstFileCnt = 1
-'    For fileCnt = 1 To UBound(srcFileList) - LBound(srcFileList)
-'      fileName = srcFileList(fileCnt)
-'      If Not CM.InStringArray(dstFileList, fileName) Then
-'        notInDstFileList(notInDstFileCnt) = fileName
-'        notInDstFileCnt = notInDstFileCnt + 1
-'      End If
-'    Next fileCnt
-'    ReDim Preserve notInDstFileList(notInDstFileCnt - 1)
-'
-'    For fileCnt = 1 To UBound(notInDstFileList) - LBound(notInDstFileList)
-'      Debug.Print "== ", notInDstFileList(fileCnt)
-'    Next fileCnt
-    
-  End If
-  
-  If Not My_Err.errOccured Then
-    Dim dataStorePath As String
-    Dim takeFromStr As String
-    Dim takeFrom() As String
-    
-    dataStorePath = thisWbFolder & "..\..\data_store\"
-    takeFromStr = ""
-    takeFromStr = takeFromStr & "" & ";" ' Year
-    takeFromStr = takeFromStr & "Si,Eu" & ";" ' Ticker
-    takeFromStr = takeFromStr & "" & ";" ' Contract
-    takeFromStr = takeFromStr & "0" & ";" ' TimeFrame
-    takeFrom = Split(takeFromStr, ";")
-    
-    Call test(dataStorePath, 0, takeFrom)
-    
-    
-    
-    
-    
-  
-  End If
   
   If My_Err.errOccured Then
     Debug.Print My_Err.errMessage
