@@ -9,7 +9,7 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
-Sub CopyDict(ByRef fromDict As Scripting.Dictionary, ByRef toDict As Scripting.Dictionary)
+Sub CopyDict(ByVal fromDict As Scripting.Dictionary, ByVal toDict As Scripting.Dictionary)
     Dim k As Variant
     Dim emptyDict As New Scripting.Dictionary
     For Each k In fromDict.keys
@@ -41,30 +41,30 @@ Function InStringArray(checkArray() As String, ByVal checkValue As String) As Bo
     Next arrVal
 End Function
 
-'Sub SplitStrToCollection(line As String, delimeter As String, coll As Collection)
-'    Dim arr() As String
-'    Dim itm As Variant
-'
-'    Set coll = New Collection
-'    arr = Split(line, delimeter)
-'    For Each itm In arr
-'        coll.Add itm
-'    Next itm
-'End Sub
-'
-'Sub CreateRowByColNames(col_Names() As String, ByRef row As Scripting.Dictionary)
-'  Dim colName As Variant
-'  Set row = New Scripting.Dictionary
-'  For Each colName In col_Names
-'    row.Add colName, Null
-'  Next colName
-'End Sub
-'
-'Sub CreateRowByColIndex(col_Index As Scripting.Dictionary, ByRef row As Scripting.Dictionary)
-'  Dim colName As Variant
-'  Set row = New Scripting.Dictionary
-'  For Each colName In col_Index
-'    row.Add colName, Null
-'  Next colName
-'End Sub
+Sub SplitStrToCollection(line As String, delimeter As String, coll As Collection)
+    Dim arr() As String
+    Dim itm As Variant
+    
+    Set coll = New Collection
+    arr = Split(line, delimeter)
+    For Each itm In arr
+        coll.Add itm
+    Next itm
+End Sub
+
+Sub CreateRowByColNames(col_Names() As String, ByRef row As Scripting.Dictionary)
+  Dim colName As Variant
+  Set row = New Scripting.Dictionary
+  For Each colName In col_Names
+    row.Add colName, Null
+  Next colName
+End Sub
+
+Sub CreateRowByColIndex(col_Index As Scripting.Dictionary, ByRef row As Scripting.Dictionary)
+  Dim colName As Variant
+  Set row = New Scripting.Dictionary
+  For Each colName In col_Index
+    row.Add colName, Null
+  Next colName
+End Sub
 

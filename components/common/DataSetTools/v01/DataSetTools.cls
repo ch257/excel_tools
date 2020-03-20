@@ -80,7 +80,8 @@ Private Sub FillLeft(ByVal dt As Long, ByVal tm As Long, DS1 As DataSet, DS1_row
     Call JoinedDS.SetCell(JoinRules("ds1_columns")(col), JoinedDS_rowCount, DS1.GetCell(col, DS1_rowCount))
   Next col
   For Each col In JoinRules("ds2_columns")
-    Call JoinedDS.SetCell(JoinRules("ds2_columns")(col), JoinedDS_rowCount, Null)
+  '  Call JoinedDS.SetCell(JoinRules("ds2_columns")(col), JoinedDS_rowCount, Null)
+    Call JoinedDS.SetCell(JoinRules("ds2_columns")(col), JoinedDS_rowCount, Empty)
   Next col
   
   JoinedDS_rowCount = JoinedDS_rowCount + 1
@@ -93,7 +94,8 @@ Private Sub FillRight(ByVal dt As Long, ByVal tm As Long, DS1 As DataSet, DS1_ro
   Call JoinedDS.SetCell("<TIME>", JoinedDS_rowCount, tm)
   
   For Each col In JoinRules("ds1_columns")
-    Call JoinedDS.SetCell(JoinRules("ds1_columns")(col), JoinedDS_rowCount, Null)
+  '  Call JoinedDS.SetCell(JoinRules("ds1_columns")(col), JoinedDS_rowCount, Null)
+    Call JoinedDS.SetCell(JoinRules("ds1_columns")(col), JoinedDS_rowCount, Empty)
   Next col
   For Each col In JoinRules("ds2_columns")
     Call JoinedDS.SetCell(JoinRules("ds2_columns")(col), JoinedDS_rowCount, DS2.GetCell(col, DS2_rowCount))

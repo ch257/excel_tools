@@ -20,6 +20,7 @@ Sub Init()
   iniFilesString = iniFilesString & "," & "settings\tick_ds.ini"
   iniFilesString = iniFilesString & "," & "settings\base_first_join_rules.ini"
   iniFilesString = iniFilesString & "," & "settings\base_first_second_join_rules.ini"
+  iniFilesString = iniFilesString & "," & "settings\3zz_ds_plot.ini"
   iniFiles = Split(iniFilesString, ",")
   
   cmpCount = 0
@@ -35,100 +36,107 @@ Sub Init()
     End If
     cmpCount = cmpCount + 1
   Next iniFile
-  Call RW_Ini.PrintSettings(settings, "  ")
+  'Call RW_Ini.PrintSettings(settings, "  ")
 End Sub
 
 Sub Run()
+   'VBA Settings – Speed Up Code:
+  'If your goal is to speed up your code,
+  'you should also consider adjusting these other settings:
+  'Disabling Screenupdating can make a huge difference in speed:
+  Application.ScreenUpdating = False
+
+  'Turning off the Status Bar will also make a small difference:
+  Application.DisplayStatusBar = False
+
+  'If your workbook contains events you should
+  'also disable events at the start of your procedures
+  '(to speed up code and to prevent endless loops!):
+  Application.EnableEvents = False
+
+  'Last, your VBA code can be slowed down when Excel
+  'tries to re-calculate page breaks (Note: not all procedures will be impacted).
+  'To turn off DisplayPageBreaks use this line of code:
+  ActiveSheet.DisplayPageBreaks = False
+  
+  Application.DisplayAlerts = False
+    
   Dim thisWbFolder As String
   Dim zzTick As New DataSet
+  Dim zzTick_fileFolder As String
   Dim zzTick_filePath As String
+  Dim zzTick_fileList() As String
   Dim zzBase As New DataSet
   Dim zzFirst As New DataSet
   Dim zzSecond As New DataSet
-'  Dim BaseFirstJoned As New DataSet
-'  Dim BaseFirstJoned_Settings As New Scripting.Dictionary
-'  Dim BaseFirstSecondJoned As New DataSet
-'  Dim BaseFirstSecondJoned_Settings As New Scripting.Dictionary
+  Dim BaseFirstJoned As New DataSet
+  Dim BaseFirstJoned_Settings As New Scripting.Dictionary
+  Dim BaseFirstSecondJoned As New DataSet
+  Dim BaseFirstSecondJoned_Settings As New Scripting.Dictionary
   Dim Ex_Meth As New ExchangeMethods
   Dim zzBase_MinMoving, zzFirst_MinMoving, zzSecond_MinMoving As Integer
-'  Dim DS_Tools As New DataSetTools
-  
-  'zzBase_filePath, zzFirst_filePath, zzSecond_filePath, joinedDS_filePath As String
-  
+  Dim DS_Tools As New DataSetTools
+  Dim ChPl As New ChartPlotter
+  Dim exportFileFolder As String
+  Dim RW_File As New RWFile
+  Dim cnt As Integer
+  Dim RW_Ini As New RWini
+  Dim CM As New CommonMethods
+  Dim memPlotSettings As New Scripting.Dictionary
   
   thisWbFolder = ThisWorkbook.Path & "\"
     
   Call Init
   If Not My_Err.errOccured Then
-    zzTick_filePath = thisWbFolder & settings("input")("file_folder") & settings("input")("zz_tick_file_name")
+    zzTick_fileFolder = thisWbFolder & settings("input")("file_folder")
     zzBase_MinMoving = settings("parameters")("zz_base_min_moving")
     zzFirst_MinMoving = settings("parameters")("zz_frst_min_moving")
     zzSecond_MinMoving = settings("parameters")("zz_second_min_moving")
   
-    Call zzTick.ReadFromFile(zzTick_filePath, settings("data_sets")("zz_pack_ds"))
+    exportFileFolder = ThisWorkbook.Path & "\" & settings("output")("file_folder") & settings("output")("img_subfolder")
+    Call RW_File.CreateFolder(exportFileFolder)
+    Call RW_File.ClearFolder(exportFileFolder)
+    
+    Call CM.CopyDict(settings("plot_settings")("3zz_ds_plot"), memPlotSettings)
+    
+    zzTick_fileList = RW_File.GetFolderFileList(zzTick_fileFolder)
+    For cnt = 1 To UBound(zzTick_fileList) - LBound(zzTick_fileList)
+      Set zzTick = Nothing
+      Set zzBase = Nothing
+      Set zzFirst = Nothing
+      Set zzSecond = Nothing
+      zzTick_filePath = zzTick_fileFolder & zzTick_fileList(cnt)
+      Call zzTick.ReadFromFile(zzTick_filePath, settings("data_sets")("zz_pack_ds"))
+      If My_Err.errOccured Then
+        Exit For
+      End If
+      Call zzBase.Create(settings("data_sets")("zz_pack_ds"))
+      Call zzFirst.Create(settings("data_sets")("zz_pack_ds"))
+      Call zzSecond.Create(settings("data_sets")("zz_pack_ds"))
+      Call Ex_Meth.ZZToZZ(zzTick, CInt(zzBase_MinMoving), zzBase)
+      Call Ex_Meth.ZZToZZ(zzTick, CInt(zzFirst_MinMoving), zzFirst)
+      Call Ex_Meth.ZZToZZ(zzTick, CInt(zzSecond_MinMoving), zzSecond)
+      
+      Set BaseFirstJoned_Settings = Nothing
+      Call DS_Tools.FullJoin( _
+        zzBase, settings("data_sets")("zz_pack_ds"), _
+        zzFirst, settings("data_sets")("zz_pack_ds"), _
+        BaseFirstJoned, BaseFirstJoned_Settings, _
+        settings("data_sets")("base_first_join_rules"))
+      
+      Set BaseFirstSecondJoned_Settings = Nothing
+      Call DS_Tools.FullJoin( _
+        BaseFirstJoned, BaseFirstJoned_Settings, _
+        zzSecond, settings("data_sets")("zz_pack_ds"), _
+        BaseFirstSecondJoned, BaseFirstSecondJoned_Settings, _
+        settings("data_sets")("base_first_second_join_rules"))
+        
+      Call CM.CopyDict(memPlotSettings, settings("plot_settings")("3zz_ds_plot"))
+      'Call RW_Ini.PrintSettings(memPlotSettings, "  ")
+      Call ChPl.PlotChart(BaseFirstSecondJoned, settings("plot_settings")("3zz_ds_plot"), "PM")
+      Call ChPl.ExportCharts(Format(cnt, "000"), exportFileFolder)
+    Next cnt
   End If
-  If Not My_Err.errOccured Then
-    Call zzBase.Create(settings("data_sets")("zz_pack_ds"))
-    Call zzFirst.Create(settings("data_sets")("zz_pack_ds"))
-    Call zzSecond.Create(settings("data_sets")("zz_pack_ds"))
-    Call Ex_Meth.ZZToZZ(zzTick, CInt(zzBase_MinMoving), zzBase)
-    Call Ex_Meth.ZZToZZ(zzBase, CInt(zzFirst_MinMoving), zzFirst)
-    Call Ex_Meth.ZZToZZ(zzBase, CInt(zzSecond_MinMoving), zzSecond)
-'
-'    Call DS_Tools.FullJoin( _
-'      zzBase, settings("data_sets")("zz_pack_ds"), _
-'      zzFirst, settings("data_sets")("zz_pack_ds"), _
-'      BaseFirstJoned, BaseFirstJoned_Settings, _
-'      settings("data_sets")("base_first_join_rules"))
-'
-'    Call DS_Tools.FullJoin( _
-'      BaseFirstJoned, BaseFirstJoned_Settings, _
-'      zzSecond, settings("data_sets")("zz_pack_ds"), _
-'      BaseFirstSecondJoned, BaseFirstSecondJoned_Settings, _
-'      settings("data_sets")("base_first_second_join_rules"))
-'
-'    zzBase_filePath = thisWbFolder & settings("output")("file_folder") & settings("output")("zz_base_file_name")
-'    zzFirst_filePath = thisWbFolder & settings("output")("file_folder") & settings("output")("zz_first_file_name")
-'    zzSecond_filePath = thisWbFolder & settings("output")("file_folder") & settings("output")("zz_second_file_name")
-'    joinedDS_filePath = thisWbFolder & settings("output")("file_folder") & settings("output")("joined_ds_file_name")
-'    Call zzBase.WriteToFile(zzBase_filePath, settings("data_sets")("zz_pack_ds"))
-'    Call zzFirst.WriteToFile(zzFirst_filePath, settings("data_sets")("zz_pack_ds"))
-'    Call zzSecond.WriteToFile(zzSecond_filePath, settings("data_sets")("zz_pack_ds"))
-'    Call BaseFirstSecondJoned.WriteToFile(joinedDS_filePath, BaseFirstSecondJoned_Settings)
-'
-''    Dim RW_Ini As New RWini
-''    Dim iniFilePath As String
-''    thisWbFolder = ThisWorkbook.Path & "\"
-''    iniFilePath = thisWbFolder & "settings\daily_snapshots\3zz_ds.ini"
-''    Call RW_Ini.WriteSettings(iniFilePath, BaseFirstSecondJoned_Settings)
-  End If
-  
-  
-  If Not My_Err.errOccured Then
-'    Dim zz_filePath, zz_ds_settings_file, zz_ds_plot_settings_file As String
-'    Dim zz_ds_settings As New Scripting.Dictionary
-'    Dim RW_Ini As New RWini
-'    Dim zzCSV As New DataSet
-'    Dim ChPl As New ChartPlotter
-'
-'    zz_filePath = thisWbFolder & "data\daily_snapshots\output\3zz.txt"
-'    zz_ds_settings_file = thisWbFolder & "settings\daily_snapshots\3zz_ds.ini"
-'    zz_ds_plot_settings_file = thisWbFolder & "settings\daily_snapshots\3zz_ds_plot.ini"
-'    Call RW_Ini.ReadSettings(zz_ds_settings_file, zz_ds_settings)
-'    Call RW_Ini.ReadSettings(zz_ds_plot_settings_file, zz_ds_settings)
-'    Call RW_Ini.ComposeSettings(zz_ds_settings, zz_ds_settings)
-'    Call zzCSV.ReadFromFile(zz_filePath, zz_ds_settings("3zz_ds"))
-'
-'    Call ChPl.PlotChart(zzCSV, zz_ds_settings("3zz_ds"), "PM")
-'    Dim exportFileFolder As String
-'    Dim RW_File As New RWFile
-'
-'    exportFileFolder = ThisWorkbook.Path & "\" & settings("output")("file_folder") & settings("output")("img_subfolder")
-'    Call RW_File.CreateFolder(exportFileFolder)
-'    Call RW_File.ClearFolder(exportFileFolder)
-'    Call ChPl.ExportCharts("001", exportFileFolder)
-  End If
-  
   
   If My_Err.errOccured Then
     Debug.Print My_Err.errMessage
@@ -137,34 +145,3 @@ Sub Run()
   Debug.Print "OK!"
 End Sub
 
-
-Sub test(dataStorePath As String, layer As Integer, takeFrom() As String)
-  Dim oFSO As Object
-  Dim oFolder As Object
-  Dim oFile As Object
-  Dim fsObj As Object
-  Dim fileNumber, subFolderNumber As Long
-  Dim subFolderName, fileName As Variant
-  Dim allowFolderList As String
-  
-  Set oFSO = CreateObject("Scripting.FileSystemObject")
-  Set oFolder = oFSO.GetFolder(dataStorePath)
-  
-  fileNumber = oFolder.Files.Count
-  subFolderNumber = oFolder.SubFolders.Count
-  
-  
-  If fileNumber > 0 Then
-    For Each fsObj In oFolder.Files
-      Debug.Print layer, dataStorePath & fsObj.Name
-    Next fsObj
-  End If
-  If subFolderNumber > 0 Then
-    allowFolderList = takeFrom(layer)
-    For Each fsObj In oFolder.SubFolders
-      If allowFolderList = "" Or InStr(allowFolderList, fsObj.Name) > 0 Then
-        Call test(dataStorePath & fsObj.Name & "\", layer + 1, takeFrom)
-      End If
-    Next fsObj
-  End If
-End Sub

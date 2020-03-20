@@ -15,7 +15,7 @@ Sub RemoveButton()
 End Sub
 
 Sub ImportButton()
-  'Call ImportComponents
+  Call ImportComponents
 End Sub
 
 Sub Init()

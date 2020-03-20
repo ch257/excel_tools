@@ -127,6 +127,7 @@ Sub CreateSubplotLineChartLayer(plotSettings As Scripting.Dictionary, XIndex, Sh
   )
   objCht.Chart.ChartType = xlLine
   objCht.Chart.DisplayBlanksAs = xlInterpolated
+  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
   
   Dim seriaValues() As Variant
   Dim itm As Variant
@@ -161,7 +162,7 @@ Sub CreateSubplotLineChartLayer(plotSettings As Scripting.Dictionary, XIndex, Sh
   objCht.Chart.PlotArea.InsideTop = 5
   
   Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Fill.Visible = msoFalse
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
+  'Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
   objCht.Chart.PlotArea.Format.Fill.Visible = msoFalse
   objCht.Chart.PlotArea.Format.line.Visible = msoFalse
   
@@ -192,6 +193,7 @@ Sub CreateSubplotHistChartLayer(plotSettings As Scripting.Dictionary, XIndex, Sh
     subplot_axes_height _
   )
   objCht.Chart.ChartType = xlColumnClustered
+  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
   
   Dim seriaValues() As Variant
   Dim itm As Variant
@@ -226,7 +228,7 @@ Sub CreateSubplotHistChartLayer(plotSettings As Scripting.Dictionary, XIndex, Sh
   objCht.Chart.PlotArea.InsideTop = 5
   
   Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Fill.Visible = msoFalse
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
+  'Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
   objCht.Chart.PlotArea.Format.Fill.Visible = msoFalse
   objCht.Chart.PlotArea.Format.line.Visible = msoFalse
   
@@ -257,6 +259,7 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName A
     subplot_axes_height _
   )
   objCht.Chart.ChartType = xlLine
+  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
   
   Dim seriaValues() As Variant
   Dim itm As Variant
@@ -289,7 +292,7 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, XIndex, SheetName A
   objCht.Chart.PlotArea.InsideTop = 5
   
   Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Fill.Visible = msoFalse
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
+  'Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
   objCht.Chart.PlotArea.Format.Fill.Visible = msoFalse
   objCht.Chart.PlotArea.Format.line.Visible = msoFalse
  
@@ -368,7 +371,7 @@ Function GetExtr(seria() As Variant) As Double()
   GetExtr = extr
 End Function
 
-Sub SetPlotSettingsExtrem(DS As DataSet, DS_Settings As Scripting.Dictionary)
+Sub SetPlotSettingsExtrem(DS As DataSet, plotSettings As Scripting.Dictionary)
   Dim series_columns() As String
   Dim seria() As Variant
   Dim col As Variant
@@ -376,27 +379,27 @@ Sub SetPlotSettingsExtrem(DS As DataSet, DS_Settings As Scripting.Dictionary)
   Dim plotSettingsCopy As New Scripting.Dictionary
   Dim CM As New CommonMethods
   Dim subPlotNumber As String
-  Dim Settings_Reader As New SettingsReader
+  'Dim Settings_Reader As New SettingsReader
   Dim heightShare As Variant
   Dim subPlotCnt As Integer
   Dim subplotYMin, subplotYMax, subplotYStep As Double
   
-  Call CM.CopyDict(DS_Settings("plot_settings"), plotSettingsCopy)
+  Call CM.CopyDict(plotSettings, plotSettingsCopy)
   
-  series_columns = Split(DS_Settings("plot_settings")("series_columns"), ",")
+  series_columns = Split(plotSettings("series_columns"), ",")
   For Each col In series_columns
     subPlotNumber = plotSettingsCopy("series_subplot")(col)
-    If DS_Settings("plot_settings")("subplot_y_min")(subPlotNumber) = "auto" Or DS_Settings("plot_settings")("subplot_y_max")(subPlotNumber) = "auto" Then
+    If plotSettings("subplot_y_min")(subPlotNumber) = "auto" Or plotSettings("subplot_y_max")(subPlotNumber) = "auto" Then
       seria = DS.GetCol(col)
       extr() = GetExtr(seria)
-      If DS_Settings("plot_settings")("subplot_y_min")(subPlotNumber) = "auto" Then
+      If plotSettings("subplot_y_min")(subPlotNumber) = "auto" Then
         If plotSettingsCopy("subplot_y_min")(subPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_min")(subPlotNumber) > extr(0) Then
           plotSettingsCopy("subplot_y_min")(subPlotNumber) = extr(0)
         End If
       Else
         plotSettingsCopy("subplot_y_min")(subPlotNumber) = CDbl(plotSettingsCopy("subplot_y_min")(subPlotNumber))
       End If
-      If DS_Settings("plot_settings")("subplot_y_max")(subPlotNumber) = "auto" Then
+      If plotSettings("subplot_y_max")(subPlotNumber) = "auto" Then
         If plotSettingsCopy("subplot_y_max")(subPlotNumber) = "auto" Or plotSettingsCopy("subplot_y_max")(subPlotNumber) < extr(1) Then
           plotSettingsCopy("subplot_y_max")(subPlotNumber) = extr(1)
         End If
@@ -407,8 +410,8 @@ Sub SetPlotSettingsExtrem(DS As DataSet, DS_Settings As Scripting.Dictionary)
   Next col
   
   subPlotCnt = 1
-  For Each heightShare In Split(DS_Settings("plot_settings")("subplot_height_share"), ",")
-    If DS_Settings("plot_settings")("subplot_y_step")(CStr(subPlotCnt)) = "auto" Then
+  For Each heightShare In Split(plotSettings("subplot_height_share"), ",")
+    If plotSettings("subplot_y_step")(CStr(subPlotCnt)) = "auto" Then
       plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt)) = _
         (plotSettingsCopy("subplot_y_max")(CStr(subPlotCnt)) - _
         plotSettingsCopy("subplot_y_min")(CStr(subPlotCnt))) / 5
@@ -416,14 +419,14 @@ Sub SetPlotSettingsExtrem(DS As DataSet, DS_Settings As Scripting.Dictionary)
       plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt)) = CDbl(plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt)))
     End If
     
-    If DS_Settings("plot_settings")("subplot_y_min")(CStr(subPlotCnt)) = "auto" Then
+    If plotSettings("subplot_y_min")(CStr(subPlotCnt)) = "auto" Then
       subplotYMin = plotSettingsCopy("subplot_y_min")(CStr(subPlotCnt))
       subplotYMax = plotSettingsCopy("subplot_y_max")(CStr(subPlotCnt))
       subplotYStep = plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt))
       plotSettingsCopy("subplot_y_min")(CStr(subPlotCnt)) = subplotYMin - subplotYMin Mod subplotYStep
     End If
     
-    If DS_Settings("plot_settings")("subplot_y_max")(CStr(subPlotCnt)) = "auto" Then
+    If plotSettings("subplot_y_max")(CStr(subPlotCnt)) = "auto" Then
       subplotYMin = plotSettingsCopy("subplot_y_min")(CStr(subPlotCnt))
       subplotYMax = plotSettingsCopy("subplot_y_max")(CStr(subPlotCnt))
       subplotYStep = plotSettingsCopy("subplot_y_step")(CStr(subPlotCnt))
@@ -432,12 +435,12 @@ Sub SetPlotSettingsExtrem(DS As DataSet, DS_Settings As Scripting.Dictionary)
     subPlotCnt = subPlotCnt + 1
   Next heightShare
   
-  Call CM.CopyDict(plotSettingsCopy, DS_Settings("plot_settings"))
+  Call CM.CopyDict(plotSettingsCopy, plotSettings)
   
-'  Debug.Print DS_Settings("plot_settings")("subplot_y_min")("1"), DS_Settings("plot_settings")("subplot_y_max")("1")
-'  Debug.Print DS_Settings("plot_settings")("subplot_y_min")("2"), DS_Settings("plot_settings")("subplot_y_max")("2")
-'  Debug.Print DS_Settings("plot_settings")("subplot_y_step")("1")
-'  Debug.Print DS_Settings("plot_settings")("subplot_y_step")("2")
+'  Debug.Print plotSettings("subplot_y_min")("1"), plotSettings("subplot_y_max")("1")
+'  Debug.Print plotSettings("subplot_y_min")("2"), plotSettings("subplot_y_max")("2")
+'  Debug.Print plotSettings("subplot_y_step")("1")
+'  Debug.Print plotSettings("subplot_y_step")("2")
 End Sub
 
 Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As String)
@@ -486,12 +489,12 @@ Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As 
   Next col
 End Sub
 
-Sub PlotChart(DS As DataSet, DS_Settings As Scripting.Dictionary, SheetName As String)
+Sub PlotChart(DS As DataSet, ByVal plotSettings As Scripting.Dictionary, SheetName As String)
   
   Call DeleteCharts(SheetName)
-  Call SetPlotSettingsExtrem(DS, DS_Settings)
-  Call CreateAxes(DS_Settings("plot_settings"), DS.GetRowIndex(), SheetName)
-  Call AddCharts(DS, DS_Settings("plot_settings"), SheetName)
+  Call SetPlotSettingsExtrem(DS, plotSettings)
+  Call CreateAxes(plotSettings, DS.GetRowIndex(), SheetName)
+  Call AddCharts(DS, plotSettings, SheetName)
   
 '  ThisWorkbook.Worksheets(SheetName).Shapes.SelectAll
 '  Selection.ShapeRange.Group
@@ -506,7 +509,7 @@ Sub ExportCharts(compositeFileName As String, exportFileFolder)
   Dim chartYPosition As Integer
   
   Call RW_File.OpenFile(exportFileFolder & "composit.bat", "a")
-  RW_File.WriteLine ("@echo off")
+  'RW_File.WriteLine ("@echo off")
   
   chtCnt = 1
   For Each chtObj In ActiveSheet.ChartObjects
@@ -528,7 +531,7 @@ Sub ExportCharts(compositeFileName As String, exportFileFolder)
     chtCnt = chtCnt + 1
   Next
   
-  RW_File.WriteLine ("pause")
+  'RW_File.WriteLine ("pause")
   Call RW_File.CloseFile
    
 End Sub

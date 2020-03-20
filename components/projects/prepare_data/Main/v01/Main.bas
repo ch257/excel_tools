@@ -8,7 +8,7 @@ Private Sub Init(iniFilesString As String)
   Dim cmpCount As Long
   Dim iniFile As Variant
   Dim iniFiles() As String
-  Dim RW_ini As New RWini
+  Dim RW_Ini As New RWini
   
   Set My_Err = New Errors
   Set settings = New Scripting.Dictionary
@@ -22,8 +22,8 @@ Private Sub Init(iniFilesString As String)
   
   For Each iniFile In iniFiles
     iniFiles(cmpCount) = thisWbFolder + iniFile
-    Call RW_ini.ReadSettings(iniFiles(cmpCount), settings)
-    Call RW_ini.ComposeSettings(settings)
+    Call RW_Ini.ReadSettings(iniFiles(cmpCount), settings)
+    Call RW_Ini.ComposeSettings(settings)
 
     If My_Err.errOccured Then
       Exit Sub
