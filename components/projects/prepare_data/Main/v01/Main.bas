@@ -30,7 +30,7 @@ Private Sub Init(iniFilesString As String)
     End If
     cmpCount = cmpCount + 1
   Next iniFile
-  'Call RW_ini.PrintSettings(settings, "  ")
+  'Call RW_Ini.PrintSettings(settings, "  ")
 End Sub
 
 Private Sub PrepareForDailySnapshots()
@@ -55,7 +55,7 @@ Private Sub PrepareForDailySnapshots()
   thisWbFolder = ThisWorkbook.Path & "\"
   
   iniFilesString = ""
-  iniFilesString = iniFilesString & "settings\daily_snapshots_main.ini"
+  iniFilesString = iniFilesString & "settings\main.ini"
   iniFilesString = iniFilesString & "," & "settings\zz_pack_ds.ini"
   iniFilesString = iniFilesString & "," & "settings\tick_ds.ini"
   

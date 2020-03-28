@@ -176,3 +176,29 @@ Sub FullJoin(DS1 As DataSet, ByVal DS1_Settings As Scripting.Dictionary, DS2 As 
   JoinedDS.rowsCount = JoinedDS_rowCount '- 1
   
 End Sub
+
+Sub SelectBetween(inDS As DataSet, ByVal inDS_Settings As Scripting.Dictionary, conditionColumn As String, fromValue As Variant, toValue As Variant, outDS As DataSet, ByVal outDS_Settings As Scripting.Dictionary)
+  Dim inDS_i As New DataSetIterator
+  Dim condVal As Variant
+  Dim outRowCnt As Long
+  Dim colName As Variant
+  Dim val As Variant
+  
+  Call outDS.Create(outDS_Settings)
+  outRowCnt = 0
+  condVal = inDS.GetCell(conditionColumn, inDS_i.rowCount)
+  Call inDS_i.Init(inDS, inDS_Settings("columns"))
+  While Not inDS_i.EndOfDS And condVal <= toValue
+    condVal = inDS.GetCell(conditionColumn, inDS_i.rowCount)
+    If condVal >= fromValue And condVal <= toValue Then
+      For Each colName In outDS.ColIndex
+        val = inDS.GetCell(colName, inDS_i.rowCount)
+        Call outDS.SetCell(colName, outRowCnt, val)
+      Next colName
+      outRowCnt = outRowCnt + 1
+    End If
+    Call inDS_i.NextRow
+  Wend
+  
+  outDS.rowsCount = outRowCnt
+End Sub

@@ -10,10 +10,10 @@ Attribute VB_Exposed = False
 Option Explicit
 
 Private rowIndex() As Long
-Private colNames() As String
+Private ColNames() As String
 Private table() As Variant
 Public row As New Scripting.Dictionary
-Public colIndex As New Scripting.Dictionary
+Public ColIndex As New Scripting.Dictionary
 Public colsCount As Long
 Public rowsCount As Long
 Public dataLength As Long
@@ -23,11 +23,11 @@ Sub Create(ByVal dsSettings As Scripting.Dictionary)
   Dim colCount, rowCount As Long
   Dim emptyArr() As Variant
   
-  Set colIndex = New Scripting.Dictionary
-  colNames = Split(dsSettings("columns"), ",")
+  Set ColIndex = New Scripting.Dictionary
+  ColNames = Split(dsSettings("columns"), ",")
   colCount = 0
-  For Each colName In colNames
-    colIndex.Add colName, colCount
+  For Each colName In ColNames
+    ColIndex.Add colName, colCount
     colCount = colCount + 1
   Next colName
   colsCount = colCount
@@ -35,7 +35,7 @@ Sub Create(ByVal dsSettings As Scripting.Dictionary)
   dataLength = dsSettings("data_set_length")
   
   ReDim table(colsCount - 1)
-  ReDim colNames(colsCount - 1)
+  ReDim ColNames(colsCount - 1)
   ReDim rowIndex(dataLength - 1)
   ReDim emptyArr(dataLength - 1)
   For rowCount = 0 To dataLength - 1
@@ -43,9 +43,9 @@ Sub Create(ByVal dsSettings As Scripting.Dictionary)
     'emptyArr(rowCount) = Null
     emptyArr(rowCount) = Empty
   Next rowCount
-  For Each colName In colIndex
-    table(colIndex(colName)) = emptyArr
-    colNames(colIndex(colName)) = colName
+  For Each colName In ColIndex
+    table(ColIndex(colName)) = emptyArr
+    ColNames(ColIndex(colName)) = colName
   Next colName
   
 End Sub
@@ -90,8 +90,8 @@ Sub ReadFromFile(ByVal filePath As String, ByVal dsSettings As Scripting.Diction
     line = RW_File.ReadLine
     If line <> "" Then
       lineParts = Split(line, dsSettings("column_separator"))
-      For Each colName In colIndex
-        colCount = colIndex(colName)
+      For Each colName In ColIndex
+        colCount = ColIndex(colName)
         'colType = dsSettings("column_type")(colName)
           colType = RW_Ini.GetValue(dsSettings("column_type"), CStr(colName))
         table(colCount)(rowCount) = Type_Convertor.Cast(lineParts(colCount), colType, dsSettings("decimal"))
@@ -122,8 +122,8 @@ Sub WriteToFile(ByVal filePath As String, ByVal dsSettings As Scripting.Dictiona
   End If
   
   line = ""
-  For Each colName In colNames
-    colCount = colIndex(colName)
+  For Each colName In ColNames
+    colCount = ColIndex(colName)
     line = line & dsSettings("column_separator") & colName
   Next colName
   line = Mid(line, 2)
@@ -132,8 +132,8 @@ Sub WriteToFile(ByVal filePath As String, ByVal dsSettings As Scripting.Dictiona
   rowCount = 0
   While rowCount < rowsCount
     line = ""
-    For Each colName In colNames
-      colCount = colIndex(colName)
+    For Each colName In ColNames
+      colCount = ColIndex(colName)
       colFormat = RW_Ini.GetValue(dsSettings("column_format"), CStr(colName))
       line = line & dsSettings("column_separator") & Type_Convertor.FormatV(table(colCount)(rowCount), colFormat, dsSettings("decimal"))
     Next colName
@@ -146,11 +146,11 @@ Sub WriteToFile(ByVal filePath As String, ByVal dsSettings As Scripting.Dictiona
 End Sub
 
 Function GetCell(ByVal colName As String, ByVal rowCount As Long) As Variant
-  GetCell = table(colIndex(colName))(rowCount)
+  GetCell = table(ColIndex(colName))(rowCount)
 End Function
 
 Sub SetCell(ByVal colName As String, ByVal rowCount As Long, val As Variant)
-  table(colIndex(colName))(rowCount) = val
+  table(ColIndex(colName))(rowCount) = val
 End Sub
 
 Public Sub CreateRow(col_Names() As String)
@@ -172,7 +172,7 @@ End Sub
 Sub GetRow(ByVal rowCount As Long)
   Dim colName As Variant
   For Each colName In row
-    row(colName) = table(colIndex(CStr(colName)))(rowCount)
+    row(colName) = table(ColIndex(CStr(colName)))(rowCount)
   Next colName
 End Sub
 
@@ -186,10 +186,9 @@ Function GetRowIndex() As Long()
 End Function
 
 Function GetCol(ByVal colName As String) As Variant()
-  GetCol = table(colIndex(colName))
+  GetCol = table(ColIndex(colName))
   ReDim Preserve GetCol(rowsCount - 1)
 End Function
-
 
 'Function GetIndexByColValue(ByVal colName As String, val As Variant) As Long
 '  Dim colCount, rowCount As Long
@@ -205,49 +204,49 @@ End Function
 '  GetIndexByColValue = -1
 'End Function
 '
-'Sub SortIndexByCol(ByVal colName As String, ByRef sortedIndex() As Long, order As String)
-'  Dim colCopy() As Variant
-'  Dim i, j, extr_i, tmpIdx As Long
-'  Dim tmp As Variant
-'
-'  sortedIndex = GetRowIndex()
-'  colCopy = GetCol(colName)
-'
-'  If order = "desc" Then
-'    For i = 0 To rowsCount - 1 - 1
-'      extr_i = i
-'      For j = i + 1 To rowsCount - 1
-'        If colCopy(extr_i) < colCopy(j) Then
-'            extr_i = j
-'        End If
-'      Next j
-'      tmp = colCopy(i)
-'      colCopy(i) = colCopy(extr_i)
-'      colCopy(extr_i) = tmp
-'
-'      tmpIdx = sortedIndex(i)
-'      sortedIndex(i) = sortedIndex(extr_i)
-'      sortedIndex(extr_i) = tmpIdx
-'    Next i
-'  Else
-'    For i = 0 To rowsCount - 1 - 1
-'      extr_i = i
-'      For j = i + 1 To rowsCount - 1
-'        If colCopy(extr_i) > colCopy(j) Then
-'            extr_i = j
-'        End If
-'      Next j
-'      tmp = colCopy(i)
-'      colCopy(i) = colCopy(extr_i)
-'      colCopy(extr_i) = tmp
-'
-'      tmpIdx = sortedIndex(i)
-'      sortedIndex(i) = sortedIndex(extr_i)
-'      sortedIndex(extr_i) = tmpIdx
-'    Next i
-'  End If
-'
-'End Sub
+Sub SortIndexByCol(ByVal colName As String, ByRef sortedIndex() As Long, order As String)
+  Dim colCopy() As Variant
+  Dim i, j, extr_i, tmpIdx As Long
+  Dim tmp As Variant
+
+  sortedIndex = GetRowIndex()
+  colCopy = GetCol(colName)
+
+  If order = "desc" Then
+    For i = 0 To rowsCount - 1 - 1
+      extr_i = i
+      For j = i + 1 To rowsCount - 1
+        If colCopy(extr_i) < colCopy(j) Then
+            extr_i = j
+        End If
+      Next j
+      tmp = colCopy(i)
+      colCopy(i) = colCopy(extr_i)
+      colCopy(extr_i) = tmp
+
+      tmpIdx = sortedIndex(i)
+      sortedIndex(i) = sortedIndex(extr_i)
+      sortedIndex(extr_i) = tmpIdx
+    Next i
+  Else
+    For i = 0 To rowsCount - 1 - 1
+      extr_i = i
+      For j = i + 1 To rowsCount - 1
+        If colCopy(extr_i) > colCopy(j) Then
+            extr_i = j
+        End If
+      Next j
+      tmp = colCopy(i)
+      colCopy(i) = colCopy(extr_i)
+      colCopy(extr_i) = tmp
+
+      tmpIdx = sortedIndex(i)
+      sortedIndex(i) = sortedIndex(extr_i)
+      sortedIndex(extr_i) = tmpIdx
+    Next i
+  End If
+
+End Sub
 '
 'Sub SortIndexRangeByCol(ByVal colName As String, startIndex As Long, stopIndex As Long, ByRef sortedIndex() As Long, ByVal order As String)
 '  Dim colCopy() As Variant

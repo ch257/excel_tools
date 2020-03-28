@@ -10,10 +10,6 @@ Sub ExportButton()
   Call ExportComponents
 End Sub
 
-Sub RemoveButton()
-  'Call RemoveComponents
-End Sub
-
 Sub ImportButton()
   Call ImportComponents
 End Sub
@@ -23,11 +19,13 @@ Sub Init()
   Dim cmpCount As Long
   Dim cmpFilePath As Variant
   Dim includedComponentsString As String
+  Dim projectName As String
   
   thisWbFolder = ThisWorkbook.Path & "\"
+  projectName = Mid(ThisWorkbook.Name, 1, InStr(ThisWorkbook.Name, ".") - 1)
   includedComponentsString = ""
-  includedComponentsString = includedComponentsString & "..\..\components\projects\prepare_data\ProjectManager\v01\ProjectManager.bas"
-  includedComponentsString = includedComponentsString & "," & "..\..\components\projects\prepare_data\Main\v01\Main.bas"
+  includedComponentsString = includedComponentsString & "..\..\components\projects\" & projectName & "\ProjectManager\v01\ProjectManager.bas"
+  includedComponentsString = includedComponentsString & "," & "..\..\components\projects\" & projectName & "\Main\v01\Main.bas"
   includedComponentsString = includedComponentsString & "," & "..\..\components\common\CommonMethods\v01\CommonMethods.cls"
   includedComponentsString = includedComponentsString & "," & "..\..\components\common\Errors\v01\Errors.cls"
   includedComponentsString = includedComponentsString & "," & "..\..\components\common\RWFile\v01\RWFile.cls"

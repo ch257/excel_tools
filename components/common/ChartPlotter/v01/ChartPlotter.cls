@@ -81,8 +81,8 @@ Sub CreateXAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, xLabels(
   objCht.Chart.Axes(xlValue).Delete
   objCht.Chart.Axes(xlValue).MajorGridlines.Delete
   
-  objCht.Chart.Axes(xlCategory).TickMarkSpacing = Round(plotSettings("xIndexMax") / 10)
-  objCht.Chart.Axes(xlCategory).TickLabelSpacing = Round(plotSettings("xIndexMax") / 10)
+  objCht.Chart.Axes(xlCategory).TickMarkSpacing = Round(plotSettings("xIndexMax") / CInt(plotSettings("x_axis_steps")("marker_steps")))
+  objCht.Chart.Axes(xlCategory).TickLabelSpacing = Round(plotSettings("xIndexMax") / CInt(plotSettings("x_axis_steps")("label_steps")))
   objCht.Chart.SetElement (msoElementPrimaryCategoryGridLinesMajor)
   'objCht.Chart.SetElement (msoElementPrimaryCategoryGridLinesMinor)
   objCht.Chart.PlotArea.Format.line.ForeColor.ObjectThemeColor = msoThemeColorText1
@@ -466,8 +466,8 @@ Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As 
   Dim lineSeriesCnt, histSeriesCnt As Integer
   
   series_columns = Split(plotSettings("series_columns"), ",")
-  lineSeriesCnt = 1
-  histSeriesCnt = 1
+'  lineSeriesCnt = 1
+'  histSeriesCnt = 1
   For Each col In series_columns
     subPlotNumber = plotSettings("series_subplot")(col)
     seriaValues = DS.GetCol(col)
@@ -478,7 +478,7 @@ Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As 
     If seriaType = "line" Then
       Set objCht = Sheets(SheetName).ChartObjects("Line" & subPlotNumber)
       objCht.Chart.SeriesCollection.NewSeries
-      lineSeriesCnt = lineSeriesCnt + 1
+      lineSeriesCnt = objCht.Chart.SeriesCollection.Count
       objCht.Chart.SeriesCollection(lineSeriesCnt).Values = seriaValues
       With objCht.Chart.SeriesCollection(lineSeriesCnt)
         .Format.line.Visible = msoTrue
@@ -489,7 +489,7 @@ Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As 
     If seriaType = "hist" Then
       Set objCht = Sheets(SheetName).ChartObjects("Hist" & subPlotNumber)
       objCht.Chart.SeriesCollection.NewSeries
-      histSeriesCnt = histSeriesCnt + 1
+      histSeriesCnt = objCht.Chart.SeriesCollection.Count
       objCht.Chart.SeriesCollection(histSeriesCnt).Values = seriaValues
       With objCht.Chart.SeriesCollection(histSeriesCnt)
         .Format.line.Visible = msoTrue
@@ -512,7 +512,7 @@ Function SetXLabels(DS As DataSet, plotSettings As Scripting.Dictionary) As Vari
   For cnt = 0 To DS.rowsCount
     lbl = ""
     For Each labelCol In labelCols
-      lbl = lbl & " " & CStr(DS.GetCell(labelCol, cnt))
+      lbl = lbl & vbCr & CStr(DS.GetCell(labelCol, cnt))
     Next labelCol
     lbl = Mid(lbl, 2)
     xLabels(cnt) = lbl

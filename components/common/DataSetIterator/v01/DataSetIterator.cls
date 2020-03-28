@@ -13,8 +13,8 @@ Public rowCount As Long
 Public EndOfDS As Boolean
 
 Private DS As New DataSet
-Private colIndex As New Scripting.Dictionary
-Private colNames() As String
+Private ColIndex As New Scripting.Dictionary
+Private ColNames() As String
 Private startIndex As Long, stopIndex As Long
 
 Sub Init(Data_Set As DataSet, col_Names As String)
@@ -25,18 +25,18 @@ Sub Init(Data_Set As DataSet, col_Names As String)
     rowCount = 0
     
     colCount = 0
-    colNames = Split(col_Names, ",")
-    Set colIndex = New Scripting.Dictionary
-    For Each col_Name In colNames
-      colIndex.Add col_Name, colCount
+    ColNames = Split(col_Names, ",")
+    Set ColIndex = New Scripting.Dictionary
+    For Each col_Name In ColNames
+      ColIndex.Add col_Name, colCount
       colCount = colCount + 1
     Next col_Name
     
     If colCount = 0 Then
-        Set colIndex = DS.colIndex
+        Set ColIndex = DS.ColIndex
     End If
     
-    Call DS.CreateRow(colNames)
+    Call DS.CreateRow(ColNames)
     
     If DS.rowsCount = 0 Then
       EndOfDS = True
@@ -55,18 +55,18 @@ Sub InitByIndex(Data_Set As DataSet, col_Names As String, idx() As Long)
     rowCount = 0
     
     colCount = 0
-    colNames = Split(col_Names, ",")
-    Set colIndex = New Scripting.Dictionary
-    For Each col_Name In colNames
-      colIndex.Add col_Name, colCount
+    ColNames = Split(col_Names, ",")
+    Set ColIndex = New Scripting.Dictionary
+    For Each col_Name In ColNames
+      ColIndex.Add col_Name, colCount
       colCount = colCount + 1
     Next col_Name
     
     If colCount = 0 Then
-        Set colIndex = DS.colIndex
+        Set ColIndex = DS.ColIndex
     End If
     
-    Call DS.CreateRow(colNames)
+    Call DS.CreateRow(ColNames)
     
     If DS.rowsCount = 0 Then
       EndOfDS = True
@@ -85,18 +85,18 @@ Sub InitRange(Data_Set As DataSet, col_Names As String, start_Index As Long, sto
     rowCount = start_Index
     
     colCount = 0
-    colNames = Split(col_Names, ",")
-    Set colIndex = New Scripting.Dictionary
-    For Each col_Name In colNames
-      colIndex.Add col_Name, colCount
+    ColNames = Split(col_Names, ",")
+    Set ColIndex = New Scripting.Dictionary
+    For Each col_Name In ColNames
+      ColIndex.Add col_Name, colCount
       colCount = colCount + 1
     Next col_Name
     
     If colCount = 0 Then
-        Set colIndex = DS.colIndex
+        Set ColIndex = DS.ColIndex
     End If
     
-    Call DS.CreateRow(colNames)
+    Call DS.CreateRow(ColNames)
     
     If DS.rowsCount = 0 Then
       EndOfDS = True
