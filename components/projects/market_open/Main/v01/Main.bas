@@ -144,18 +144,18 @@ Sub Run()
       Call ChPl.PlotChart(zzBase, settings("plot_settings")("zz_ds_plot"), "PM")
       
       
-      Call s_volDistr.Create(settings("data_sets")("hist_ds"))
-      Call b_volDistr.Create(settings("data_sets")("hist_ds"))
-      Call volDistr.Create(settings("data_sets")("hist_ds"))
-      
-      Call SM.CalcDistribution(SelectedZZTick, "<LAST>", "<S_VOL>", 10, s_volDistr)
-      Call SM.CalcDistribution(SelectedZZTick, "<LAST>", "<B_VOL>", 10, b_volDistr)
-      Call SM.CalcDistribution(SelectedZZTick, "<LAST>", "<VOL>", 10, volDistr)
-      Call SelectedZZTick.WriteToFile("C:\churilin\ex\tools\projects\market_open\data\output\selected.txt", settings("data_sets")("hist_ds"))
-      Call s_volDistr.WriteToFile("C:\churilin\ex\tools\projects\market_open\data\output\s_volHist.txt", settings("data_sets")("hist_ds"))
-      Call b_volDistr.WriteToFile("C:\churilin\ex\tools\projects\market_open\data\output\b_volHist.txt", settings("data_sets")("hist_ds"))
-      Call volDistr.WriteToFile("C:\churilin\ex\tools\projects\market_open\data\output\volHist.txt", settings("data_sets")("hist_ds"))
-      'Call ChPl.ExportCharts(Format(cnt, "000"), exportFileFolder)
+'      Call s_volDistr.Create(settings("data_sets")("hist_ds"))
+'      Call b_volDistr.Create(settings("data_sets")("hist_ds"))
+'      Call volDistr.Create(settings("data_sets")("hist_ds"))
+'
+'      Call SM.CalcDistribution(SelectedZZTick, "<LAST>", "<S_VOL>", 10, s_volDistr)
+'      Call SM.CalcDistribution(SelectedZZTick, "<LAST>", "<B_VOL>", 10, b_volDistr)
+'      Call SM.CalcDistribution(SelectedZZTick, "<LAST>", "<VOL>", 10, volDistr)
+'      Call SelectedZZTick.WriteToFile("C:\churilin\ex\tools\projects\market_open\data\output\selected.txt", settings("data_sets")("hist_ds"))
+'      Call s_volDistr.WriteToFile("C:\churilin\ex\tools\projects\market_open\data\output\s_volHist.txt", settings("data_sets")("hist_ds"))
+'      Call b_volDistr.WriteToFile("C:\churilin\ex\tools\projects\market_open\data\output\b_volHist.txt", settings("data_sets")("hist_ds"))
+'      Call volDistr.WriteToFile("C:\churilin\ex\tools\projects\market_open\data\output\volHist.txt", settings("data_sets")("hist_ds"))
+      Call ChPl.ExportCharts(Format(cnt, "000"), exportFileFolder)
     Next cnt
   End If
   

@@ -68,7 +68,8 @@ Sub Run()
   Dim SelectedZZTick As New DataSet
   Dim zzBase As New DataSet
   Dim Ex_Meth As New ExchangeMethods
-  Dim zzBase_MinMoving As Integer
+  Dim zzBase_MinMoving As Variant
+  Dim zzBase_MinMovings() As String
   Dim DS_Tools As New DataSetTools
   Dim outputFileFolder As String
   Dim outputFileName As String
@@ -83,35 +84,40 @@ Sub Run()
   Call Init
   If Not My_Err.errOccured Then
     zzTick_fileFolder = thisWbFolder & settings("input")("file_folder")
-    zzBase_MinMoving = settings("parameters")("zz_base_min_moving")
+    zzBase_MinMovings = Split("10,20,30,40,50,60,70,80,90,100", ",") 'settings("parameters")("zz_base_min_moving")
     
     outputFileFolder = ThisWorkbook.Path & "\" & settings("output")("file_folder")
     outputFileName = ThisWorkbook.Path & "\" & settings("output")("file_name")
     Call RW_File.CreateFolder(outputFileFolder)
     Call RW_File.ClearFolder(outputFileFolder)
     
-    Call volatilityDS.Create(settings("data_sets")("volatility_ds"))
-    
-    zzTick_fileList = RW_File.GetFolderFileList(zzTick_fileFolder)
-    For cnt = 1 To UBound(zzTick_fileList) - LBound(zzTick_fileList)
       
-      zzTick_filePath = zzTick_fileFolder & zzTick_fileList(cnt)
-      Call zzTick.ReadFromFile(zzTick_filePath, settings("data_sets")("zz_pack_ds"))
-      If My_Err.errOccured Then
-        Exit For
-      End If
-      Call zzBase.Create(settings("data_sets")("zz_pack_ds"))
-      Call Ex_Meth.ZZToZZ(zzTick, CInt(zzBase_MinMoving), zzBase)
-      Call DS_Tools.SelectBetween(zzBase, settings("data_sets")("zz_pack_ds"), "<TIME>", 100000, 110000, SelectedZZTick, settings("data_sets")("zz_pack_ds"))
-            
-      Call volatilityDS.SetCell("<FILENAME>", cnt - 1, zzTick_fileList(cnt))
-      Call volatilityDS.SetCell("<SELECTED_LENGTH>", cnt - 1, SelectedZZTick.rowsCount)
-      Call volatilityDS.SetCell("<TOTAL_LENGTH>", cnt - 1, zzBase.rowsCount)
-      
-    Next cnt
+    For Each zzBase_MinMoving In zzBase_MinMovings
+      Call volatilityDS.Create(settings("data_sets")("volatility_ds"))
     
-    volatilityDS.rowsCount = cnt - 1
-    Call volatilityDS.WriteToFile(outputFileFolder & "volatility.txt", settings("data_sets")("zz_pack_ds"))
+      zzTick_fileList = RW_File.GetFolderFileList(zzTick_fileFolder)
+      For cnt = 1 To UBound(zzTick_fileList) - LBound(zzTick_fileList)
+        
+        zzTick_filePath = zzTick_fileFolder & zzTick_fileList(cnt)
+        Call zzTick.ReadFromFile(zzTick_filePath, settings("data_sets")("zz_pack_ds"))
+        If My_Err.errOccured Then
+          Exit For
+        End If
+        Call zzBase.Create(settings("data_sets")("zz_pack_ds"))
+        Call Ex_Meth.ZZToZZ(zzTick, CInt(zzBase_MinMoving), zzBase)
+        Call DS_Tools.SelectBetween(zzBase, settings("data_sets")("zz_pack_ds"), "<TIME>", 100000, 110000, SelectedZZTick, settings("data_sets")("zz_pack_ds"))
+              
+        Call volatilityDS.SetCell("<FILENAME>", cnt - 1, zzTick_fileList(cnt))
+        Call volatilityDS.SetCell("<SELECTED_LENGTH>", cnt - 1, SelectedZZTick.rowsCount)
+        Call volatilityDS.SetCell("<TOTAL_LENGTH>", cnt - 1, zzBase.rowsCount)
+        
+      Next cnt
+      
+      volatilityDS.rowsCount = cnt - 1
+      Call volatilityDS.WriteToSheet(CStr(zzBase_MinMoving), settings("data_sets")("zz_pack_ds"))
+    Next zzBase_MinMoving
+    
+    
   End If
   
   If My_Err.errOccured Then
