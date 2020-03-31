@@ -27,6 +27,27 @@ projects/prepare_data/data/*
 projects/prepare_data/settings/*
 !projects/prepare_data/settings/*.ini
 
+!projects/market_open/
+projects/market_open/*
+!projects/market_open/*.xlsm
+!projects/market_open/*.xls
+!projects/market_open/data/
+projects/market_open/data/*
+!projects/market_open/settings/
+projects/market_open/settings/*
+!projects/market_open/settings/*.ini
+
+!projects/volatility/
+projects/volatility/*
+!projects/volatility/*.xlsm
+!projects/volatility/*.xls
+!projects/volatility/data/
+projects/volatility/data/*
+!projects/volatility/settings/
+projects/volatility/settings/*
+!projects/volatility/settings/*.ini
+
+
 ~$*.xlsm
 ~$*.xlsx
 ~$*.docx
