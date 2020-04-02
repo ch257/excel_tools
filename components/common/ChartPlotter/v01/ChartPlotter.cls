@@ -24,16 +24,16 @@ Option Explicit
 Private exportYShift As New Scripting.Dictionary
 Private exportChartCnt As Integer
 
-Sub DeleteCharts(SheetName As String)
+Sub DeleteCharts(sheetName As String)
   Dim chtObj As ChartObject
-  For Each chtObj In Sheets(SheetName).ChartObjects
+  For Each chtObj In Sheets(sheetName).ChartObjects
     chtObj.Delete
   Next
   Set exportYShift = Nothing
   exportChartCnt = 1
 End Sub
 
-Sub CreateXAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, xLabels() As Variant, SheetName As String)
+Sub CreateXAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, xLabels() As Variant, sheetName As String)
   Dim objCht As ChartObject
   Dim axes_height, axes_width As Integer
   Dim x_axis_height, y_axis_width As Integer
@@ -48,7 +48,7 @@ Sub CreateXAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, xLabels(
   exportYShift.Add exportChartCnt, 0
   exportChartCnt = exportChartCnt + 1
   
-  Set objCht = Sheets(SheetName).ChartObjects.Add( _
+  Set objCht = Sheets(sheetName).ChartObjects.Add( _
     CInt(axes_bind_position(0)), _
     CInt(axes_bind_position(1)), _
     axes_width, _
@@ -108,7 +108,7 @@ Sub CreateXAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, xLabels(
   End With
 End Sub
 
-Sub CreateSubplotLineChartLayer(plotSettings As Scripting.Dictionary, xIndex() As Long, SheetName As String, plotSettingsShift As Scripting.Dictionary)
+Sub CreateSubplotLineChartLayer(plotSettings As Scripting.Dictionary, xIndex() As Long, sheetName As String, plotSettingsShift As Scripting.Dictionary)
   Dim objCht As ChartObject
   Dim subplot_axes_height, axes_width As Integer
   Dim x_axis_height, y_axis_width As Integer
@@ -125,7 +125,7 @@ Sub CreateSubplotLineChartLayer(plotSettings As Scripting.Dictionary, xIndex() A
   exportYShift.Add exportChartCnt, plotSettingsShift("axes_bind_position_y")
   exportChartCnt = exportChartCnt + 1
   
-  Set objCht = Sheets(SheetName).ChartObjects.Add( _
+  Set objCht = Sheets(sheetName).ChartObjects.Add( _
     CInt(axes_bind_position(0)), _
     CInt(axes_bind_position(1)) + plotSettingsShift("axes_bind_position_y"), _
     axes_width, _
@@ -133,7 +133,7 @@ Sub CreateSubplotLineChartLayer(plotSettings As Scripting.Dictionary, xIndex() A
   )
   objCht.Chart.ChartType = xlLine
   objCht.Chart.DisplayBlanksAs = xlInterpolated
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
+  Sheets(sheetName).Shapes(Mid(objCht.Chart.Name, Len(sheetName) + 2)).line.Visible = msoFalse
   
   Dim seriaValues() As Variant
   Dim itm As Variant
@@ -167,15 +167,15 @@ Sub CreateSubplotLineChartLayer(plotSettings As Scripting.Dictionary, xIndex() A
   objCht.Chart.PlotArea.InsideLeft = y_axis_width - 5
   objCht.Chart.PlotArea.InsideTop = 5
   
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Fill.Visible = msoFalse
+  Sheets(sheetName).Shapes(Mid(objCht.Chart.Name, Len(sheetName) + 2)).Fill.Visible = msoFalse
   'Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
   objCht.Chart.PlotArea.Format.Fill.Visible = msoFalse
   objCht.Chart.PlotArea.Format.line.Visible = msoFalse
   
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Name = "Line" & subPlotNumber
+  Sheets(sheetName).Shapes(Mid(objCht.Chart.Name, Len(sheetName) + 2)).Name = "Line" & subPlotNumber
 End Sub
 
-Sub CreateSubplotHistChartLayer(plotSettings As Scripting.Dictionary, xIndex() As Long, SheetName As String, plotSettingsShift As Scripting.Dictionary)
+Sub CreateSubplotHistChartLayer(plotSettings As Scripting.Dictionary, xIndex() As Long, sheetName As String, plotSettingsShift As Scripting.Dictionary)
   Dim objCht As ChartObject
   Dim subplot_axes_height, axes_width As Integer
   Dim x_axis_height, y_axis_width As Integer
@@ -192,14 +192,14 @@ Sub CreateSubplotHistChartLayer(plotSettings As Scripting.Dictionary, xIndex() A
   exportYShift.Add exportChartCnt, plotSettingsShift("axes_bind_position_y")
   exportChartCnt = exportChartCnt + 1
   
-  Set objCht = Sheets(SheetName).ChartObjects.Add( _
+  Set objCht = Sheets(sheetName).ChartObjects.Add( _
     CInt(axes_bind_position(0)), _
     CInt(axes_bind_position(1)) + plotSettingsShift("axes_bind_position_y"), _
     axes_width, _
     subplot_axes_height _
   )
   objCht.Chart.ChartType = xlColumnClustered
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
+  Sheets(sheetName).Shapes(Mid(objCht.Chart.Name, Len(sheetName) + 2)).line.Visible = msoFalse
   
   Dim seriaValues() As Variant
   Dim itm As Variant
@@ -233,15 +233,15 @@ Sub CreateSubplotHistChartLayer(plotSettings As Scripting.Dictionary, xIndex() A
   objCht.Chart.PlotArea.InsideLeft = y_axis_width - 5
   objCht.Chart.PlotArea.InsideTop = 5
   
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Fill.Visible = msoFalse
+  Sheets(sheetName).Shapes(Mid(objCht.Chart.Name, Len(sheetName) + 2)).Fill.Visible = msoFalse
   'Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
   objCht.Chart.PlotArea.Format.Fill.Visible = msoFalse
   objCht.Chart.PlotArea.Format.line.Visible = msoFalse
   
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Name = "Hist" & subPlotNumber
+  Sheets(sheetName).Shapes(Mid(objCht.Chart.Name, Len(sheetName) + 2)).Name = "Hist" & subPlotNumber
 End Sub
 
-Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, SheetName As String, plotSettingsShift As Scripting.Dictionary)
+Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, sheetName As String, plotSettingsShift As Scripting.Dictionary)
   Dim objCht As ChartObject
   Dim subplot_axes_height, axes_width As Integer
   Dim x_axis_height, y_axis_width As Integer
@@ -258,14 +258,14 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, S
   exportYShift.Add exportChartCnt, plotSettingsShift("axes_bind_position_y")
   exportChartCnt = exportChartCnt + 1
   
-  Set objCht = Sheets(SheetName).ChartObjects.Add( _
+  Set objCht = Sheets(sheetName).ChartObjects.Add( _
     CInt(axes_bind_position(0)), _
     CInt(axes_bind_position(1)) + plotSettingsShift("axes_bind_position_y"), _
     axes_width, _
     subplot_axes_height _
   )
   objCht.Chart.ChartType = xlLine
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
+  Sheets(sheetName).Shapes(Mid(objCht.Chart.Name, Len(sheetName) + 2)).line.Visible = msoFalse
   
   Dim seriaValues() As Variant
   Dim itm As Variant
@@ -297,7 +297,7 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, S
   objCht.Chart.PlotArea.InsideLeft = y_axis_width - 5
   objCht.Chart.PlotArea.InsideTop = 5
   
-  Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).Fill.Visible = msoFalse
+  Sheets(sheetName).Shapes(Mid(objCht.Chart.Name, Len(sheetName) + 2)).Fill.Visible = msoFalse
   'Sheets(SheetName).Shapes(Mid(objCht.Chart.Name, Len(SheetName) + 2)).line.Visible = msoFalse
   objCht.Chart.PlotArea.Format.Fill.Visible = msoFalse
   objCht.Chart.PlotArea.Format.line.Visible = msoFalse
@@ -312,7 +312,7 @@ Sub CreateSubplotYAxis(plotSettings As Scripting.Dictionary, xIndex() As Long, S
   End With
 End Sub
 
-Sub CreateAxes(plotSettings As Scripting.Dictionary, xIndex() As Long, xLabels() As Variant, SheetName As String)
+Sub CreateAxes(plotSettings As Scripting.Dictionary, xIndex() As Long, xLabels() As Variant, sheetName As String)
     Dim subplotHeightShare() As String
     Dim heightShare As Variant
     Dim height100 As Integer
@@ -321,7 +321,7 @@ Sub CreateAxes(plotSettings As Scripting.Dictionary, xIndex() As Long, xLabels()
     Dim axes_bind_position_y As Integer
     Dim axes_height, subplot_axes_height, axes_width As Integer
     Dim subPlotNumber As String
-    Call CreateXAxis(plotSettings, xIndex, xLabels, SheetName)
+    Call CreateXAxis(plotSettings, xIndex, xLabels, sheetName)
     
     subplot_height_share = Split(plotSettings("subplot_height_share"), ",")
     height100 = 0
@@ -341,9 +341,9 @@ Sub CreateAxes(plotSettings As Scripting.Dictionary, xIndex() As Long, xLabels()
       plotSettingsShift.Add "subplot_axes_height", subplot_axes_height
       plotSettingsShift.Add "subplot_number", subPlotNumber
       
-      Call CreateSubplotYAxis(plotSettings, xIndex, SheetName, plotSettingsShift)
-      Call CreateSubplotHistChartLayer(plotSettings, xIndex, SheetName, plotSettingsShift)
-      Call CreateSubplotLineChartLayer(plotSettings, xIndex, SheetName, plotSettingsShift)
+      Call CreateSubplotYAxis(plotSettings, xIndex, sheetName, plotSettingsShift)
+      Call CreateSubplotHistChartLayer(plotSettings, xIndex, sheetName, plotSettingsShift)
+      Call CreateSubplotLineChartLayer(plotSettings, xIndex, sheetName, plotSettingsShift)
       
       axes_bind_position_y = axes_bind_position_y + subplot_axes_height
     Next heightShare
@@ -454,7 +454,7 @@ Sub SetPlotSettingsExtrem(DS As DataSet, plotSettings As Scripting.Dictionary)
 '  Debug.Print plotSettings("subplot_y_step")("2")
 End Sub
 
-Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As String)
+Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, sheetName As String)
   Dim objCht As ChartObject
   Dim series_columns() As String
   Dim seriaValues() As Variant
@@ -476,7 +476,7 @@ Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As 
     seriaWeight = CDbl(Replace(plotSettings("series_weight")(col), ".", Application.DecimalSeparator))
     seriaColor = Split(plotSettings("series_color")(col), ",")
     If seriaType = "line" Then
-      Set objCht = Sheets(SheetName).ChartObjects("Line" & subPlotNumber)
+      Set objCht = Sheets(sheetName).ChartObjects("Line" & subPlotNumber)
       objCht.Chart.SeriesCollection.NewSeries
       lineSeriesCnt = objCht.Chart.SeriesCollection.Count
       objCht.Chart.SeriesCollection(lineSeriesCnt).Values = seriaValues
@@ -487,7 +487,7 @@ Sub AddCharts(DS As DataSet, plotSettings As Scripting.Dictionary, SheetName As 
       End With
     End If
     If seriaType = "hist" Then
-      Set objCht = Sheets(SheetName).ChartObjects("Hist" & subPlotNumber)
+      Set objCht = Sheets(sheetName).ChartObjects("Hist" & subPlotNumber)
       objCht.Chart.SeriesCollection.NewSeries
       histSeriesCnt = objCht.Chart.SeriesCollection.Count
       objCht.Chart.SeriesCollection(histSeriesCnt).Values = seriaValues
@@ -521,16 +521,16 @@ Function SetXLabels(DS As DataSet, plotSettings As Scripting.Dictionary) As Vari
   SetXLabels = xLabels
 End Function
 
-Sub PlotChart(DS As DataSet, ByVal plotSettings As Scripting.Dictionary, SheetName As String)
+Sub PlotChart(DS As DataSet, ByVal plotSettings As Scripting.Dictionary, sheetName As String)
   Dim xIndex() As Long
   Dim xLabels() As Variant
   
   xIndex = DS.GetRowIndex()
   xLabels = SetXLabels(DS, plotSettings)
-  Call DeleteCharts(SheetName)
+  Call DeleteCharts(sheetName)
   Call SetPlotSettingsExtrem(DS, plotSettings)
-  Call CreateAxes(plotSettings, xIndex, xLabels, SheetName)
-  Call AddCharts(DS, plotSettings, SheetName)
+  Call CreateAxes(plotSettings, xIndex, xLabels, sheetName)
+  Call AddCharts(DS, plotSettings, sheetName)
   
 '  ThisWorkbook.Worksheets(SheetName).Shapes.SelectAll
 '  Selection.ShapeRange.Group

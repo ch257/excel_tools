@@ -41,6 +41,31 @@ Function InStringArray(checkArray() As String, ByVal checkValue As String) As Bo
     Next arrVal
 End Function
 
+Function SheetExists(sheetName As String) As Boolean
+  Dim sh As Variant
+  
+  SheetExists = False
+  For Each sh In ThisWorkbook.Sheets
+    If sh.Name = sheetName Then
+      SheetExists = True
+      Exit For
+    End If
+  Next sh
+End Function
+
+Sub CreateSheet(sheetName As String)
+  Dim sh As Worksheet
+  
+  If Not SheetExists(sheetName) Then
+    Set sh = ThisWorkbook.Sheets.Add(After:=ThisWorkbook.Worksheets(ThisWorkbook.Worksheets.Count))
+    sh.Name = sheetName
+  End If
+End Sub
+
+Sub ClearSheet(sheetName As String)
+  ThisWorkbook.Sheets(sheetName).Cells.ClearContents
+End Sub
+
 Sub SplitStrToCollection(line As String, delimeter As String, coll As Collection)
     Dim arr() As String
     Dim itm As Variant

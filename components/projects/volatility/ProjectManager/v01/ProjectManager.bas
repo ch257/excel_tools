@@ -24,7 +24,7 @@ Sub Init()
   thisWbFolder = ThisWorkbook.Path & "\"
   projectName = Mid(ThisWorkbook.Name, 1, InStr(ThisWorkbook.Name, ".") - 1)
   includedComponentsString = ""
-  includedComponentsString = includedComponentsString & "..\..\components\projects\" & projectName & "\ProjectManager\v01\ProjectManager.bas"
+  includedComponentsString = includedComponentsString & "," & "..\..\components\projects\" & projectName & "\ProjectManager\v01\ProjectManager.bas"
   includedComponentsString = includedComponentsString & "," & "..\..\components\projects\" & projectName & "\Main\v01\Main.bas"
   includedComponentsString = includedComponentsString & "," & "..\..\components\common\CommonMethods\v01\CommonMethods.cls"
   includedComponentsString = includedComponentsString & "," & "..\..\components\common\Errors\v01\Errors.cls"
@@ -41,7 +41,7 @@ Sub Init()
   includedComponentsString = includedComponentsString & "," & "..\..\components\exchange\ZigZagAbsolute\v01\ZigZagAbsolute.cls"
   includedComponentsString = includedComponentsString & "," & "..\..\components\exchange\ExchangeMethods\v01\ExchangeMethods.cls"
   
-  includedComponents = Split(includedComponentsString, ",")
+  includedComponents = Split(Mid(includedComponentsString, 2), ",")
   
   cmpCount = 0
   For Each cmpFilePath In includedComponents
