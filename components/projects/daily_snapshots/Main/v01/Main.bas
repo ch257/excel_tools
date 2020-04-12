@@ -39,6 +39,12 @@ Sub Init()
   'Call RW_Ini.PrintSettings(settings, "  ")
 End Sub
 
+Private Function CalcZZBaseMinMoving(a As Double, b As Double, c As Double, zzVolatilityMovings As Double) As Integer
+  Dim d As Double
+  d = b * b - 4 * a * (c - zzVolatilityMovings)
+  CalcZZBaseMinMoving = CInt((-b + Sqr(d)) / (2 * a))
+End Function
+
 Sub Run()
    'VBA Settings – Speed Up Code:
   'If your goal is to speed up your code,
@@ -66,6 +72,8 @@ Sub Run()
   Dim zzTick_fileFolder As String
   Dim zzTick_filePath As String
   Dim zzTick_fileList() As String
+  Dim zzVolatility As New DataSet
+  Dim SelectedZZ As New DataSet
   Dim zzBase As New DataSet
   Dim zzFirst As New DataSet
   Dim zzSecond As New DataSet
@@ -83,16 +91,19 @@ Sub Run()
   Dim RW_Ini As New RWini
   Dim CM As New CommonMethods
   Dim memPlotSettings As New Scripting.Dictionary
+  Dim a As Double
+  Dim b As Double
+  Dim c As Double
   
   thisWbFolder = ThisWorkbook.Path & "\"
     
   Call Init
   If Not My_Err.errOccured Then
     zzTick_fileFolder = thisWbFolder & settings("input")("file_folder")
-    zzBase_MinMoving = settings("parameters")("zz_base_min_moving")
-    zzFirst_MinMoving = settings("parameters")("zz_frst_min_moving")
-    zzSecond_MinMoving = settings("parameters")("zz_second_min_moving")
-  
+    a = CDbl(settings("parameters")("a"))
+    b = CDbl(settings("parameters")("b"))
+    c = CDbl(settings("parameters")("c"))
+    
     exportFileFolder = ThisWorkbook.Path & "\" & settings("output")("file_folder") & settings("output")("img_subfolder")
     Call RW_File.CreateFolder(exportFileFolder)
     Call RW_File.ClearFolder(exportFileFolder)
@@ -101,15 +112,20 @@ Sub Run()
     
     zzTick_fileList = RW_File.GetFolderFileList(zzTick_fileFolder)
     For cnt = 1 To UBound(zzTick_fileList) - LBound(zzTick_fileList)
-      Set zzTick = Nothing
-      Set zzBase = Nothing
-      Set zzFirst = Nothing
-      Set zzSecond = Nothing
       zzTick_filePath = zzTick_fileFolder & zzTick_fileList(cnt)
       Call zzTick.ReadFromFile(zzTick_filePath, settings("data_sets")("zz_pack_ds"))
       If My_Err.errOccured Then
         Exit For
       End If
+      
+      Call DS_Tools.SelectBetween(zzTick, settings("data_sets")("zz_pack_ds"), "<TIME>", 100500, 110000, SelectedZZ, settings("data_sets")("zz_pack_ds"))
+      Call zzVolatility.Create(settings("data_sets")("zz_pack_ds"))
+      Call Ex_Meth.ZZToZZ(SelectedZZ, 10, zzVolatility)
+      
+      zzBase_MinMoving = CalcZZBaseMinMoving(a, b, c, zzVolatility.rowsCount)
+      zzFirst_MinMoving = zzBase_MinMoving * 5
+      zzSecond_MinMoving = zzBase_MinMoving * 15
+      
       Call zzBase.Create(settings("data_sets")("zz_pack_ds"))
       Call zzFirst.Create(settings("data_sets")("zz_pack_ds"))
       Call zzSecond.Create(settings("data_sets")("zz_pack_ds"))
